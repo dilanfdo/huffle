@@ -54,7 +54,8 @@
           ],
           "iCloudContainerEnvironment": "Development"
         }
-      ]
+      ],
+      "./plugins/withReleaseSigning"
     ]
   }
 }

@@ -2,9 +2,9 @@
 
 **One-liner:** An iOS app where a virtual creature (a "Huffling") grows as you build a consistent movement habit — built for beginners and inconsistent exercisers, not serious lifters, with zero recurring infrastructure cost.
 
-**Status:** Pre-development / planning complete. Ready to start Phase 1a build.
+**Status:** Android v1 feature-complete and release-built (core loop, evolution, streak-freeze, journey screen, SVG Huffling). iOS and CloudKit sync are built but not yet verified on a device. See §9 for the Android release checklist and open items.
 
-**Platform:** iOS only (v1). React Native via Expo.
+**Platform:** Android first, iOS next. React Native via Expo (SDK 57). Package / bundle id: `app.nexusdigitallabs.huffle`.
 
 ---
 
@@ -31,7 +31,7 @@ Beginners and inconsistent exercisers who:
 
 - Not a lifting/programming tool (no sets, reps, weight, exercise library)
 - Not a social/competitive fitness app
-- Not cross-platform at launch (iOS/CloudKit-only architecture — see §4)
+- No cross-device sync on Android at launch. CloudKit is Apple-only, so Android data is local (Android Auto Backup restores it with the Google account); sync is an iOS feature (see §4)
 - Not AI-powered (keeps recurring cost at zero)
 
 ---
@@ -123,7 +123,7 @@ WeeklyGoal
 - `HabitType` uses a generic name + `category` field (not `WorkoutType`) — this single decision is what lets v2+ add non-fitness habit categories (water, sleep, reading) as new seed data rather than a schema rewrite.
 - No sets/reps/weight/exercise-library tables — that complexity belongs to Hevy/Strong, not this app. The simplicity of the log is the differentiation, not a limitation.
 
-### 4.4 CloudKit sync (v1 feature, not deferred)
+### 4.4 CloudKit sync (iOS; built, unverified on device)
 
 - **Private database only** — each user's data lives in their own iCloud; no cross-user data ever touches infrastructure we manage. No privacy/compliance burden.
 - Local SQLite/WatermelonDB remains the source of truth for instant UI reads/writes; the app must work fully offline.
@@ -141,9 +141,9 @@ Although CloudKit is a v1/day-one architectural feature, it's built as a **separ
 
 | Phase | Scope | Est. time |
 |---|---|---|
-| **1a** | Core loop: Habit CRUD, local SQLite storage, basic Huffling states, local notifications, onboarding with guaranteed first win | 2–3 weeks |
-| **1b** | CloudKit sync layer: entitlements, private database wiring, conflict resolution | ~1 week |
-| **2** | Engagement layer: XP, evolution stages, streak-freeze, Lottie animations | 1–2 weeks |
+| **1a** | Core loop: Habit CRUD, local SQLite storage, basic Huffling states, local notifications, onboarding with guaranteed first win | **Done** |
+| **1b** | CloudKit sync layer: entitlements, private database wiring, conflict resolution | **Built, not device-verified** (iOS only) |
+| **2** | Engagement layer: XP, evolution stages, streak-freeze, Huffling art/animation | **Done** — SVG character (drawn in code, `react-native-svg`), evolution celebration, freeze feedback, journey screen. Lottie not used. |
 | **3** | Retention polish: adaptive nudges, weekly summary, haptics, Sign in with Apple, App Store assets | 1–2 weeks |
 | **4** | Monetization + ship: StoreKit paywall, RevenueCat, TestFlight beta, App Store submission | — |
 
@@ -214,11 +214,27 @@ The brand does not need to change as this expands — Finch launched narrower th
 
 ---
 
-## 9. Open Items / Next Steps
+## 9. Android Release Checklist & Open Items
 
-- [ ] Run Phase 1a Cursor prompt, verify core loop working on-device
-- [ ] Run Phase 1b Cursor prompt (CloudKit sync)
-- [ ] Finalize evolution stage names and thresholds
-- [ ] Confirm app name via App Store Connect reservation
-- [ ] Begin placeholder-to-final art pass for the Huffling (Phase 2)
-- [ ] Draft App Store screenshots and listing copy ahead of Phase 4
+**Built and verified on an Android emulator:** onboarding with guaranteed first session, logging, streak/freeze logic, evolution celebration, journey screen, reminders (channel + permission), keyboard behaviour, release build with upload-key signing.
+
+**Release build**
+- `npx expo prebuild --platform android --clean`, then `cd android && ./gradlew bundleRelease` → `android/app/build/outputs/bundle/release/app-release.aab`.
+- Signing: upload key lives outside the repo at `~/.huffle-signing/` (`huffle-upload.jks` + `keystore.properties`), wired in by `plugins/withReleaseSigning.js`. **Back this folder up** — enrol in Play App Signing so a lost upload key can be reset, but keep a copy regardless.
+- Bump `expo.android.versionCode` (and `version`) for every Play upload.
+
+**Play Console tasks (need the developer account)**
+- [ ] Create the app (`app.nexusdigitallabs.huffle`), enrol in Play App Signing, upload the AAB to Internal testing.
+- [ ] Store listing: title, short/full description, 512px icon (`assets/icon.png`), feature graphic (1024x500), 2–8 phone screenshots.
+- [ ] Privacy policy URL (required). The app collects nothing and has no network calls; data stays on the device.
+- [ ] Data safety form: no data collected or shared.
+- [ ] Content rating questionnaire, target audience (not directed at children), health-app declarations (this is a wellness tracker, not a medical app).
+- [ ] Closed testing with the required tester count/period before requesting production (applies to new personal accounts).
+
+**Product open items**
+- [ ] Run the notification schedule on a physical device over several days (Doze / reboot behaviour).
+- [ ] Verify on a physical device: soft keyboard, large font sizes, small screens.
+- [ ] Brand: reserve the name in App Store Connect / Play, register `huffle.app`, trademark search, fallback social handles.
+- [ ] iOS: dev build, register the `iCloud.app.nexusdigitallabs.huffle` container, verify CloudKit push/pull/restore on two devices.
+- [ ] Phase 3: weekly summary, adaptive nudges, Sign in with Apple (iOS), store assets.
+- [ ] Phase 4: RevenueCat paywall, analytics, TestFlight.
