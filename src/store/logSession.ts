@@ -17,6 +17,7 @@ import {
   applyCompletedDay,
   fromLocalDateString,
   moodFromLastFedAt,
+  streakMilestone,
   stageFromXp,
   toLocalDateString,
   weekStartDateString,
@@ -137,6 +138,9 @@ export async function logSession(input: LogSessionInput): Promise<LogSessionResu
     useUserStore.getState().setCurrentWeek(nextWeek);
   }
 
+  // Today's reminders are moot once logged; rebuild the plan from fresh state.
+  void import('../notifications/schedule').then((m) => m.syncLocalNotifications());
+
   return {
     session,
     xpAwarded,
@@ -148,5 +152,7 @@ export async function logSession(input: LogSessionInput): Promise<LogSessionResu
     firstSessionOfDay,
     freezeUsed,
     freezeEarned,
+    streakDays: streakResult.currentStreak,
+    streakMilestone: firstSessionOfDay ? streakMilestone(streakResult.currentStreak) : null,
   };
 }

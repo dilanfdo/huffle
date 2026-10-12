@@ -3,6 +3,7 @@ import { AccessibilityInfo, Animated, Easing, StyleSheet, Text, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Confetti } from '../../components/anim/Confetti';
 import { HufflingCharacter } from '../../components/huffling/HufflingCharacter';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { stageLabel } from '../../domain';
@@ -78,9 +79,21 @@ export function EvolutionScreen({ navigation, route }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.center}>
-        <Animated.View style={{ transform: [{ scale }] }}>
-          <HufflingCharacter stage={shownStage} mood="energized" size={220} />
-        </Animated.View>
+        <View style={styles.stage}>
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.ring,
+              {
+                opacity: reveal.interpolate({ inputRange: [0, 0.25, 1], outputRange: [0, 0.7, 0] }),
+                transform: [{ scale: reveal.interpolate({ inputRange: [0, 1], outputRange: [0.7, 2.2] }) }],
+              },
+            ]}
+          />
+          <Animated.View style={{ transform: [{ scale }] }}>
+            <HufflingCharacter stage={shownStage} mood="energized" size={220} />
+          </Animated.View>
+        </View>
 
         <Animated.View style={[styles.copy, { opacity: reveal }]} accessibilityLiveRegion="polite">
           <Text accessibilityRole="header" style={styles.title}>
@@ -100,6 +113,7 @@ export function EvolutionScreen({ navigation, route }: Props) {
       <View style={styles.footer}>
         <PrimaryButton label="Keep going" onPress={onContinue} disabled={!done} />
       </View>
+      <Confetti burstKey={done ? 1 : null} count={64} originY={0.38} spread={190} />
     </SafeAreaView>
   );
 }
@@ -115,6 +129,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: space.xl,
     gap: space.xl,
+  },
+  stage: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ring: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    borderWidth: 4,
+    borderColor: colors.accent,
   },
   copy: {
     alignItems: 'center',

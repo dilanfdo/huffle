@@ -1,4 +1,4 @@
-import { fromLocalDateString, toLocalDateString } from './dates';
+import { addLocalDays, fromLocalDateString, toLocalDateString } from './dates';
 
 export const DEFAULT_WEEKLY_TARGET = 3;
 
@@ -20,4 +20,29 @@ export function isInWeekStarting(localDate: string, weekStart: string): boolean 
   const start = fromLocalDateString(weekStart).getTime();
   const end = start + 7 * 86_400_000;
   return value >= start && value < end;
+}
+
+export type WeekDay = {
+  date: string;
+  letter: string;
+  isToday: boolean;
+  isFuture: boolean;
+  done: boolean;
+};
+
+const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'] as const;
+
+/** Monday-first row for the week containing `today`, marking days that have a session. */
+export function weekDays(today: string, sessionDates: ReadonlySet<string>): WeekDay[] {
+  const start = weekStartDateString(fromLocalDateString(today));
+  return DAY_LETTERS.map((letter, index) => {
+    const date = addLocalDays(start, index);
+    return {
+      date,
+      letter,
+      isToday: date === today,
+      isFuture: date > today,
+      done: sessionDates.has(date),
+    };
+  });
 }

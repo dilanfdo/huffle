@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text } from 'react-native';
 import { colors } from '../theme/colors';
 
 type Props = {
@@ -8,19 +9,28 @@ type Props = {
 };
 
 export function PrimaryButton({ label, onPress, disabled = false }: Props) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const springTo = (toValue: number) =>
+    Animated.spring(scale, { toValue, friction: 5, tension: 240, useNativeDriver: true }).start();
+
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      disabled={disabled}
-      style={({ pressed }) => [
-        styles.button,
-        disabled && styles.disabled,
-        pressed && !disabled && styles.pressed,
-      ]}
-    >
-      <Text style={styles.label}>{label}</Text>
-    </Pressable>
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ disabled }}
+        onPress={onPress}
+        onPressIn={() => springTo(0.96)}
+        onPressOut={() => springTo(1)}
+        disabled={disabled}
+        style={({ pressed }) => [
+          styles.button,
+          disabled && styles.disabled,
+          pressed && !disabled && styles.pressed,
+        ]}
+      >
+        <Text style={styles.label}>{label}</Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 

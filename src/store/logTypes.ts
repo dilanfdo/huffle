@@ -18,4 +18,8 @@ export type LogSessionResult = {
   freezeUsed: boolean;
   /** A freeze token was earned by reaching a streak milestone on this log. */
   freezeEarned: boolean;
+  /** Streak length after this log. */
+  streakDays: number;
+  /** Set when this log lands the streak on a celebration length. */
+  streakMilestone: number | null;
 };

@@ -3,6 +3,14 @@ import { addLocalDays, localDayDiff } from './dates';
 /** Award a freeze token every N consecutive days so tokens accrue without a shop. */
 export const FREEZE_TOKEN_STREAK_INTERVAL = 7;
 
+/** Streak lengths worth a celebration. */
+export const STREAK_MILESTONES = [3, 7, 14, 21, 30, 50, 75, 100, 150, 200, 365] as const;
+
+/** The milestone this streak length hits exactly, or null. */
+export function streakMilestone(days: number): number | null {
+  return (STREAK_MILESTONES as readonly number[]).includes(days) ? days : null;
+}
+
 /** Streak days still needed to earn the next freeze token (a full interval right after one). */
 export function daysToNextFreezeToken(currentStreak: number): number {
   const streakDays = Math.max(0, currentStreak);

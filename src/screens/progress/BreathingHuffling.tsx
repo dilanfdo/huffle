@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Animated, Easing } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Easing } from 'react-native';
+import { useReducedMotion } from '../../components/anim/useReducedMotion';
 import { HufflingCharacter } from '../../components/huffling/HufflingCharacter';
 import type { EvolutionStageId, Mood } from '../../domain';
 
@@ -10,24 +11,6 @@ const BREATH: Record<Mood, { period: number; amplitude: number }> = {
   energized: { period: 3800, amplitude: 0.06 },
 };
 
-function useReduceMotion(): boolean {
-  const [reduce, setReduce] = useState(false);
-  useEffect(() => {
-    let active = true;
-    void AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
-      if (active) {
-        setReduce(enabled);
-      }
-    });
-    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduce);
-    return () => {
-      active = false;
-      sub.remove();
-    };
-  }, []);
-  return reduce;
-}
-
 type Props = {
   stage: EvolutionStageId;
   mood: Mood;
@@ -36,7 +19,7 @@ type Props = {
 
 export function BreathingHuffling({ stage, mood, size = 168 }: Props) {
   const scale = useRef(new Animated.Value(1)).current;
-  const reduceMotion = useReduceMotion();
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     scale.setValue(1);

@@ -69,7 +69,8 @@ Competing habit-pet apps use generic mood states (happy/sad blob, costumed creat
 - **Streaks:** consecutive days with at least one session.
 - **Streak-freeze tokens:** earned periodically; let a user skip a day without breaking their streak. Apps with a freeze mechanic show meaningfully longer average streaks than apps without one.
 - **First-session win:** onboarding guarantees the user logs one session and gains XP before ever reaching the home screen. This is the single highest-leverage retention lever identified in research — users who hit an achievement on day one show roughly double the day-30 retention of those who don't.
-- **Notification policy:** max 1–2 local notifications/day; over-notifying is a proven churn driver. An adaptive "your Huffling misses you" notification fires if the app hasn't been opened in 24h.
+- **Notification policy (implemented in `src/notifications/`):** local only, max 2 a day. A daily reminder at the user's chosen time, plus one evening "streak-save" nudge (20:30) only when a 2+ day streak is at stake and it lands 90+ minutes after the daily one. Nothing fires on a day already logged. Copy is in the Huffling's voice and escalates warmly as days are missed (streak-alive → missed one → missed a few → "no pressure"), then stops after 7 days away. The whole plan is rebuilt on app open/resume, after each log, and when settings change. The tone dial is `notifications/copy.ts`.
+- **Duolingo-style pull, Huffle tone:** the engagement loop borrows Duolingo's mechanics (daily reminder, streak flame, week row, milestones, celebration moments, a character that talks) but not its guilt: copy is playful and never shaming, a lapsed streak is framed as "a nap", and freeze tokens soften misses. Motion is purposeful and respects the system reduce-motion setting.
 
 ---
 
@@ -209,6 +210,7 @@ The brand does not need to change as this expands — Finch launched narrower th
 | CloudKit over Firebase/Supabase | Zero cost regardless of scale (billed to user's iCloud); no server to manage; strong privacy story requires no extra work |
 | CloudKit built as v1 feature, but as a separate build phase (1b) | Cross-device sync matters from day one for a habit app, but bundling it into the same AI-assisted build pass as the core UI increases the risk of unrecoverable mistakes |
 | `HabitType` with `category` field, not `WorkoutType` | Single schema decision that enables the entire v2+ roadmap (non-fitness habits) without a rewrite |
+| Duolingo-style reminders and gamified motion, kept warm | Streak pressure and celebration drive return visits, but the anti-guilt promise is the differentiator: nudges are capped at two a day, fade out after a week away, and never shame |
 | Decay-not-punishment pet logic (no stage regression, ever) | Directly addresses the "broken streak → user quits" failure mode common in habit apps |
 | Original creature ("Huffling") instead of a real animal | Avoids likeness/trademark risk; allows the breathing/energy metaphor to be built specifically for this app's mechanic |
 

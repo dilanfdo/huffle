@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -124,6 +125,14 @@ export function SettingsScreen() {
               ) : null}
             </>
           )}
+
+          <Text style={styles.copy}>
+            Up to two gentle nudges a day: this reminder and, when a streak is at stake, one in the
+            evening. They stop on their own if you’re away for a week.
+          </Text>
+          <Pressable onPress={() => void Linking.openSettings()} style={styles.inlineButton} accessibilityRole="button">
+            <Text style={styles.inlineButtonText}>Notification settings</Text>
+          </Pressable>
 
           <Text style={styles.meta}>
             Streak freeze tokens: {user?.streakFreezeTokens ?? 0} (used automatically if you miss one day)

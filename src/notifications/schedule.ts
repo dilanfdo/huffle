@@ -1,11 +1,10 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { useHufflingStore } from '../store/hufflingStore';
+import { useStreakStore } from '../store/streakStore';
 import { useUserStore } from '../store/userStore';
+import { planNotifications } from './plan';
 
-const DAILY_ID = 'huffle-daily-reminder';
-const COMEBACK_ID = 'huffle-comeback';
-const COMEBACK_SECONDS = 24 * 60 * 60;
 const ANDROID_CHANNEL_ID = 'huffle-reminders';
 
 Notifications.setNotificationHandler({
@@ -43,52 +42,49 @@ async function ensurePermission(): Promise<boolean> {
   return status === 'granted';
 }
 
-/**
- * At most one daily reminder, plus a single 24h "come back" ping that is
- * rescheduled every time the app is opened (so it only fires after a day away).
- */
-export async function syncLocalNotifications(): Promise<void> {
+let queue: Promise<void> = Promise.resolve();
+
+async function runSync(now: Date): Promise<void> {
   const user = useUserStore.getState().user;
   if (!user?.onboardingComplete) {
     await Notifications.cancelAllScheduledNotificationsAsync();
     return;
   }
-
-  const allowed = await ensurePermission();
-  if (!allowed) {
+  if (!(await ensurePermission())) {
     return;
   }
 
-  const name = useHufflingStore.getState().huffling?.name ?? 'your Huffling';
-
-  await Notifications.cancelScheduledNotificationAsync(DAILY_ID);
-  await Notifications.cancelScheduledNotificationAsync(COMEBACK_ID);
-
-  await Notifications.scheduleNotificationAsync({
-    identifier: DAILY_ID,
-    content: {
-      title: `${name} is around`,
-      body: 'A little movement is enough — whenever you feel like it.',
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      hour: user.reminderHour,
-      minute: user.reminderMinute,
-      channelId: ANDROID_CHANNEL_ID,
-    },
+  const streak = useStreakStore.getState().streak;
+  const plan = planNotifications({
+    now,
+    name: useHufflingStore.getState().huffling?.name ?? 'your Huffling',
+    reminderHour: user.reminderHour,
+    reminderMinute: user.reminderMinute,
+    lastCompletedDate: streak?.lastCompletedDate ?? null,
+    currentStreak: streak?.currentStreak ?? 0,
+    freezeTokens: user.streakFreezeTokens,
   });
 
-  await Notifications.scheduleNotificationAsync({
-    identifier: COMEBACK_ID,
-    content: {
-      title: `${name} missed your face, not your streak`,
-      body: 'No lecture. Just a quiet hello if you want to drop in.',
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-      seconds: COMEBACK_SECONDS,
-      repeats: false,
-      channelId: ANDROID_CHANNEL_ID,
-    },
-  });
+  await Notifications.cancelAllScheduledNotificationsAsync();
+  for (const item of plan) {
+    await Notifications.scheduleNotificationAsync({
+      identifier: item.id,
+      content: { title: item.title, body: item.body },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: item.at,
+        channelId: ANDROID_CHANNEL_ID,
+      },
+    });
+  }
+}
+
+/**
+ * Rebuilds the next week of reminders from current state. Run on app open,
+ * resume, after logging a session, and when settings change. Serialised so
+ * overlapping calls can't interleave a cancel with another run's schedules.
+ */
+export function syncLocalNotifications(now: Date = new Date()): Promise<void> {
+  queue = queue.then(() => runSync(now)).catch(() => undefined);
+  return queue;
 }

@@ -19,6 +19,8 @@ export type SessionReaction = {
   firstSessionOfDay: boolean;
   freezeUsed: boolean;
   freezeEarned: boolean;
+  streakDays: number;
+  streakMilestone: number | null;
 };
 
 export type EvolutionParams = {

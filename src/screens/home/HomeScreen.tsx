@@ -1,14 +1,30 @@
-import { useEffect } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { AnimatedBar } from '../../components/anim/AnimatedBar';
+import { BouncyView } from '../../components/anim/BouncyView';
+import { Confetti } from '../../components/anim/Confetti';
+import { FloatingXp } from '../../components/anim/FloatingXp';
+import { SpeechBubble } from '../../components/anim/SpeechBubble';
+import { StreakFlame } from '../../components/anim/StreakFlame';
+import { useCountUp } from '../../components/anim/useCountUp';
 import { Huffling } from '../../components/huffling/Huffling';
+import { WeekDots } from '../../components/home/WeekDots';
 import { PrimaryButton } from '../../components/PrimaryButton';
-import { liveStreak, xpToNextStage } from '../../domain';
-import { useClockStore, useHufflingStore, useStreakStore, useUserStore } from '../../store';
+import { hufflingLine, liveStreak, stageProgress, toLocalDateString, weekDays } from '../../domain';
+import {
+  useClockStore,
+  useHufflingStore,
+  useSessionStore,
+  useStreakStore,
+  useUserStore,
+} from '../../store';
 import { colors } from '../../theme/colors';
+import { radius, space } from '../../theme/layout';
+import { type } from '../../theme/typography';
 import type { MainStackParamList, MainTabParamList } from '../../root/navigation/types';
 
 type Props = CompositeScreenProps<
@@ -21,49 +37,89 @@ export function HomeScreen({ navigation, route }: Props) {
   const streak = useStreakStore((s) => s.streak);
   const week = useUserStore((s) => s.currentWeek);
   const freezeTokens = useUserStore((s) => s.user?.streakFreezeTokens ?? 0);
+  const sessions = useSessionStore((s) => s.sessions);
   const today = useClockStore((s) => s.today);
   const reaction = route.params?.reaction;
-  const toNext = huffling ? xpToNextStage(huffling.xp) : null;
+  const [burst, setBurst] = useState<number | null>(null);
+
+  const streakDays = streak ? liveStreak(streak, freezeTokens, today) : 0;
+  const loggedToday = streak?.lastCompletedDate === today;
   const target = week?.targetSessions ?? 3;
   const done = week?.sessionsCompletedThisWeek ?? 0;
-  const weekRatio = Math.min(1, done / Math.max(1, target));
-  const streakDays = streak ? liveStreak(streak, freezeTokens, today) : 0;
+  const progress = huffling ? stageProgress(huffling.xp) : null;
+  const xpShown = useCountUp(huffling?.xp ?? 0);
+  const streakShown = useCountUp(streakDays);
+
+  const days = useMemo(() => {
+    const dates = new Set(sessions.map((s) => toLocalDateString(new Date(s.completedAt))));
+    return weekDays(today, dates);
+  }, [sessions, today]);
+
+  const line = huffling
+    ? hufflingLine({
+        name: huffling.name,
+        mood: huffling.mood,
+        loggedToday,
+        streak: streakDays,
+        hasHistory: sessions.length > 0,
+        hour: new Date().getHours(),
+        seed: today,
+      })
+    : null;
 
   useEffect(() => {
     if (!reaction) {
       return;
     }
+    setBurst(Date.now());
     const timer = setTimeout(() => {
       navigation.setParams({ reaction: undefined });
-    }, 4500);
+    }, 5000);
     return () => clearTimeout(timer);
   }, [navigation, reaction]);
 
+  const celebrate = Boolean(reaction && (reaction.evolved || reaction.streakMilestone));
+  const showAtRisk = !loggedToday && streakDays >= 2 && !reaction;
+
+  const reactionTitle = reaction
+    ? reaction.evolved
+      ? `${reaction.name} reached ${reaction.stageLabel}`
+      : reaction.streakMilestone
+        ? `${reaction.streakMilestone}-day streak!`
+        : `${reaction.name} perked up`
+    : '';
+
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.body}>
+      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
         {huffling ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`${huffling.name}'s journey`}
-            accessibilityHint="Shows evolution progress, streaks and freeze tokens"
-            onPress={() => navigation.navigate('Progress')}
-          >
-            <Huffling
-              name={huffling.name}
-              stage={huffling.evolutionStage}
-              mood={huffling.mood}
-            />
-          </Pressable>
+          <View style={styles.hero}>
+            {line ? <SpeechBubble text={line} /> : null}
+            <View>
+              <BouncyView trigger={burst}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${huffling.name}'s journey`}
+                  accessibilityHint="Shows evolution progress, streaks and freeze tokens"
+                  onPress={() => navigation.navigate('Progress')}
+                >
+                  <Huffling
+                    name={huffling.name}
+                    stage={huffling.evolutionStage}
+                    mood={huffling.mood}
+                  />
+                </Pressable>
+              </BouncyView>
+              {reaction && burst !== null ? (
+                <FloatingXp amount={reaction.xpAwarded} animKey={burst} />
+              ) : null}
+            </View>
+          </View>
         ) : null}
 
         {reaction ? (
           <View style={styles.reaction} accessibilityLiveRegion="polite">
-            <Text style={styles.reactionTitle}>
-              {reaction.evolved
-                ? `${reaction.name} reached ${reaction.stageLabel}`
-                : `${reaction.name} perked up`}
-            </Text>
+            <Text style={styles.reactionTitle}>{reactionTitle}</Text>
             <Text style={styles.reactionCopy}>
               +{reaction.xpAwarded} XP
               {reaction.firstSessionOfDay ? ' · streak kept going' : ' · extra session today'}
@@ -77,27 +133,59 @@ export function HomeScreen({ navigation, route }: Props) {
           </View>
         ) : null}
 
+        {showAtRisk ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Keep your ${streakDays}-day streak. Log a session.`}
+            onPress={() => navigation.navigate('LogSession')}
+            style={({ pressed }) => [styles.risk, pressed && styles.riskPressed]}
+          >
+            <Text style={styles.riskTitle}>Keep your {streakDays}-day streak going</Text>
+            <Text style={styles.riskCopy}>
+              {freezeTokens > 0
+                ? 'A freeze token has your back — but a quick move is even better.'
+                : 'A few minutes today is all it takes.'}
+            </Text>
+          </Pressable>
+        ) : null}
+
         <View style={styles.row}>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{streakDays}</Text>
+          <View
+            accessible
+            accessibilityLabel={`${streakDays} day streak`}
+            style={styles.statCard}
+          >
+            <View style={styles.statTop}>
+              <StreakFlame days={streakDays} />
+              <Text style={styles.statValue}>{streakShown}</Text>
+            </View>
             <Text style={styles.statLabel}>day streak</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{huffling?.xp ?? 0}</Text>
+          <View
+            accessible
+            accessibilityLabel={`${huffling?.xp ?? 0} XP`}
+            style={styles.statCard}
+          >
+            <Text style={styles.statValue}>{xpShown}</Text>
+            <View style={styles.xpBar}>
+              <AnimatedBar
+                ratio={progress?.ratio ?? 0}
+                height={8}
+                accessibilityLabel="Progress to next stage"
+              />
+            </View>
             <Text style={styles.statLabel}>
-              {toNext === null ? 'XP · thriving' : `${toNext} XP to next`}
+              {progress?.next ? `${progress.next.minXp - (huffling?.xp ?? 0)} XP to ${progress.next.label}` : 'XP · thriving'}
             </Text>
           </View>
         </View>
 
         <View style={styles.weekCard}>
           <Text style={styles.weekTitle}>This week</Text>
+          <WeekDots days={days} />
           <Text style={styles.weekCopy}>
             {done} of {target} sessions — showing up is the whole point
           </Text>
-          <View style={styles.track}>
-            <View style={[styles.fill, { width: `${weekRatio * 100}%` }]} />
-          </View>
         </View>
 
         {huffling ? (
@@ -109,120 +197,136 @@ export function HomeScreen({ navigation, route }: Props) {
             <Text style={styles.journeyLinkText}>See {huffling.name}’s journey</Text>
           </Pressable>
         ) : null}
-      </View>
+      </ScrollView>
 
       <View style={styles.footer}>
-        <PrimaryButton label="Log a session" onPress={() => navigation.navigate('LogSession')} />
+        <PrimaryButton
+          label={loggedToday ? 'Log another session' : 'Log a session'}
+          onPress={() => navigation.navigate('LogSession')}
+        />
         <Text style={styles.hint}>Any movement counts. No sets, reps, or guilt.</Text>
       </View>
+
+      <Confetti burstKey={burst} count={celebrate ? 56 : 26} originY={0.3} spread={celebrate ? 200 : 150} />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: colors.bg,
+  },
+  body: {
+    paddingHorizontal: space.xl,
+    paddingTop: space.md,
+    paddingBottom: space.lg,
+    gap: space.lg,
+  },
+  hero: {
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  reaction: {
+    backgroundColor: colors.accentContainer,
+    borderRadius: radius.md,
+    padding: space.lg,
+    gap: space.xs,
+  },
+  reactionTitle: {
+    ...type.titleMedium,
+    color: colors.onAccentContainer,
+    textAlign: 'center',
+  },
+  reactionCopy: {
+    ...type.bodyMedium,
+    color: colors.onAccentContainer,
+    textAlign: 'center',
+  },
+  risk: {
+    backgroundColor: colors.accentContainer,
+    borderRadius: radius.md,
+    padding: space.lg,
+    gap: space.xs,
+  },
+  riskPressed: {
+    opacity: 0.85,
+  },
+  riskTitle: {
+    ...type.titleMedium,
+    color: colors.onAccentContainer,
+  },
+  riskCopy: {
+    ...type.bodyMedium,
+    color: colors.onAccentContainer,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: space.md,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: colors.surfaceContainer,
+    borderRadius: radius.lg,
+    paddingVertical: space.lg,
+    paddingHorizontal: space.md,
+    alignItems: 'center',
+    gap: space.xs,
+  },
+  statTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  statValue: {
+    ...type.displaySmall,
+    color: colors.ink,
+  },
+  statLabel: {
+    ...type.labelLarge,
+    color: colors.inkSecondary,
+    textAlign: 'center',
+  },
+  xpBar: {
+    alignSelf: 'stretch',
+    marginVertical: space.xs,
+  },
+  weekCard: {
+    backgroundColor: colors.surfaceContainer,
+    borderRadius: radius.lg,
+    padding: space.lg,
+    gap: space.md,
+  },
+  weekTitle: {
+    ...type.titleMedium,
+    color: colors.ink,
+  },
+  weekCopy: {
+    ...type.bodyMedium,
+    color: colors.inkSecondary,
+  },
   journeyLink: {
     alignSelf: 'center',
     minHeight: 48,
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: space.lg,
     borderRadius: 24,
   },
   journeyLinkPressed: {
     backgroundColor: colors.surfaceContainer,
   },
   journeyLinkText: {
+    ...type.labelLarge,
     color: colors.accentDark,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  body: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    gap: 16,
-  },
-  reaction: {
-    backgroundColor: '#FDEEE8',
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: colors.accent,
-  },
-  reactionTitle: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: colors.ink,
-    textAlign: 'center',
-  },
-  reactionCopy: {
-    marginTop: 4,
-    fontSize: 15,
-    color: colors.accentDark,
-    textAlign: 'center',
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.line,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: colors.ink,
-  },
-  statLabel: {
-    marginTop: 4,
-    fontSize: 13,
-    color: colors.inkMuted,
-  },
-  weekCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.line,
-    padding: 16,
-    gap: 8,
-  },
-  weekTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.ink,
-  },
-  weekCopy: {
-    fontSize: 14,
-    color: colors.inkMuted,
-  },
-  track: {
-    height: 10,
-    borderRadius: 8,
-    backgroundColor: colors.line,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    backgroundColor: colors.calm,
-    borderRadius: 8,
   },
   footer: {
-    paddingHorizontal: 24,
-    paddingBottom: 16,
-    gap: 10,
+    paddingHorizontal: space.xl,
+    paddingBottom: space.lg,
+    gap: space.sm,
   },
   hint: {
-    textAlign: 'center',
-    fontSize: 13,
+    ...type.bodyMedium,
     color: colors.inkMuted,
+    textAlign: 'center',
   },
 });

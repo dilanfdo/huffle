@@ -20,6 +20,7 @@ import {
 import { colors } from '../../theme/colors';
 import { radius, space } from '../../theme/layout';
 import { type } from '../../theme/typography';
+import { useCountUp } from '../../components/anim/useCountUp';
 import { BreathingHuffling } from './BreathingHuffling';
 import { StageTimeline } from './StageTimeline';
 import { StatTile } from './StatTile';
@@ -43,6 +44,7 @@ export function ProgressScreen({ navigation }: Props) {
   const sessionCount = useSessionStore((s) => s.sessions.length);
   const today = useClockStore((s) => s.today);
 
+  const xpShown = useCountUp(huffling?.xp ?? 0, 1000);
   const fill = useRef(new Animated.Value(0)).current;
   const ratio = huffling ? stageProgress(huffling.xp).ratio : 0;
 
@@ -112,7 +114,7 @@ export function ProgressScreen({ navigation }: Props) {
         <View style={styles.section}>
           <View style={styles.xpHeader}>
             <Text style={styles.sectionTitle}>Evolution</Text>
-            <Text style={styles.xpValue}>{huffling.xp} XP</Text>
+            <Text style={styles.xpValue}>{xpShown} XP</Text>
           </View>
           <View
             accessibilityRole="progressbar"
