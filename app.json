@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "huffle",
+    "name": "Huffle",
     "slug": "huffle",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,24 +13,45 @@
     "android": {
       "package": "app.nexusdigitallabs.huffle",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FBE3CF",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 1,
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "backgroundColor": "#F6F1E8"
+        }
+      ],
       "expo-sqlite",
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#E07A5F"
+        }
+      ],
       "@react-native-community/datetimepicker",
       [
         "expo-cloudkit",
         {
-          "containerIds": ["iCloud.app.nexusdigitallabs.huffle"],
+          "containerIds": [
+            "iCloud.app.nexusdigitallabs.huffle"
+          ],
           "iCloudContainerEnvironment": "Development"
         }
       ]

@@ -71,6 +71,8 @@ export async function logSession(input: LogSessionInput): Promise<LogSessionResu
     user.streakFreezeTokens,
   );
   const firstSessionOfDay = streak.lastCompletedDate !== localDate;
+  const freezeUsed = streakResult.freezeUsedDates.length > streak.freezeUsedDates.length;
+  const freezeEarned = streakResult.freezeTokensDelta + (freezeUsed ? 1 : 0) > 0;
   const xpAwarded = xpForSession(streakResult.currentStreak);
   const previousStage = huffling.evolutionStage;
   const previousMood = huffling.mood;
@@ -144,5 +146,7 @@ export async function logSession(input: LogSessionInput): Promise<LogSessionResu
     previousMood,
     newMood,
     firstSessionOfDay,
+    freezeUsed,
+    freezeEarned,
   };
 }

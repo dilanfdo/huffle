@@ -68,6 +68,12 @@ export function HomeScreen({ navigation, route }: Props) {
               +{reaction.xpAwarded} XP
               {reaction.firstSessionOfDay ? ' · streak kept going' : ' · extra session today'}
             </Text>
+            {reaction.freezeUsed ? (
+              <Text style={styles.reactionCopy}>A freeze token covered your missed day.</Text>
+            ) : null}
+            {reaction.freezeEarned ? (
+              <Text style={styles.reactionCopy}>You earned a streak freeze token.</Text>
+            ) : null}
           </View>
         ) : null}
 

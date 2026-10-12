@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import type { EvolutionStageId, Mood } from '../../domain';
-import { stageLabel } from '../../domain';
+import { EVOLUTION_STAGES, stageLabel } from '../../domain';
 import { colors } from '../../theme/colors';
 import { HufflingCharacter } from './HufflingCharacter';
 
@@ -23,8 +23,10 @@ export function Huffling({ name, stage, mood, size = 180 }: Props) {
     <View style={styles.wrap}>
       <HufflingCharacter stage={stage} mood={mood} size={size} />
       {name ? <Text style={styles.name}>{name}</Text> : null}
-      <Text style={styles.meta}>
-        {stageLabel(stage)} · {MOOD_LABEL[mood]}
+      <Text style={styles.meta}>{MOOD_LABEL[mood]}</Text>
+      <Text style={styles.stage}>
+        Stage {EVOLUTION_STAGES.findIndex((s) => s.id === stage) + 1} of {EVOLUTION_STAGES.length} ·{' '}
+        {stageLabel(stage)}
       </Text>
     </View>
   );
@@ -43,6 +45,11 @@ const styles = StyleSheet.create({
   meta: {
     marginTop: 4,
     fontSize: 15,
+    color: colors.inkMuted,
+  },
+  stage: {
+    marginTop: 2,
+    fontSize: 13,
     color: colors.inkMuted,
   },
 });

@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LogSessionScreen } from '../../screens/logSession/LogSessionScreen';
+import { EvolutionScreen } from '../../screens/evolution/EvolutionScreen';
 import { ProgressScreen } from '../../screens/progress/ProgressScreen';
 import { MainTabs } from './MainTabs';
 import type { MainStackParamList } from './types';
@@ -16,6 +17,11 @@ export function MainNavigator() {
         options={{ presentation: 'modal' }}
       />
       <MainStack.Screen name="Progress" component={ProgressScreen} />
+      <MainStack.Screen
+        name="Evolution"
+        component={EvolutionScreen}
+        options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false }}
+      />
     </MainStack.Navigator>
   );
 }

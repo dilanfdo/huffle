@@ -19,18 +19,25 @@ export function LogSessionScreen({ navigation }: Props) {
       onSubmit={async (input) => {
         const result = await logSession(input);
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        navigation.navigate('Tabs', {
-          screen: 'Home',
-          params: {
-            reaction: {
-              xpAwarded: result.xpAwarded,
-              evolved: result.evolved,
-              stageLabel: stageLabel(result.newStage),
-              name,
-              firstSessionOfDay: result.firstSessionOfDay,
-            },
-          },
-        });
+        const reaction = {
+          xpAwarded: result.xpAwarded,
+          evolved: result.evolved,
+          stageLabel: stageLabel(result.newStage),
+          name,
+          firstSessionOfDay: result.firstSessionOfDay,
+          freezeUsed: result.freezeUsed,
+          freezeEarned: result.freezeEarned,
+        };
+        if (result.evolved) {
+          navigation.replace('Evolution', {
+            name,
+            fromStage: result.previousStage,
+            toStage: result.newStage,
+            reaction,
+          });
+          return;
+        }
+        navigation.navigate('Tabs', { screen: 'Home', params: { reaction } });
       }}
     />
   );

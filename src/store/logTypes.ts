@@ -14,4 +14,8 @@ export type LogSessionResult = {
   previousMood: import('../domain').Mood;
   newMood: import('../domain').Mood;
   firstSessionOfDay: boolean;
+  /** A freeze token was spent to cover a missed day on this log. */
+  freezeUsed: boolean;
+  /** A freeze token was earned by reaching a streak milestone on this log. */
+  freezeEarned: boolean;
 };

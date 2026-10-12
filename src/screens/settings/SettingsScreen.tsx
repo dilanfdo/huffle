@@ -65,7 +65,7 @@ export function SettingsScreen() {
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
       >
         <ScrollView contentContainerStyle={styles.scroll}>
           <Text style={styles.title}>Settings</Text>

@@ -17,6 +17,15 @@ export type SessionReaction = {
   stageLabel: string;
   name: string;
   firstSessionOfDay: boolean;
+  freezeUsed: boolean;
+  freezeEarned: boolean;
+};
+
+export type EvolutionParams = {
+  name: string;
+  fromStage: import('../../domain').EvolutionStageId;
+  toStage: import('../../domain').EvolutionStageId;
+  reaction: SessionReaction;
 };
 
 export type MainTabParamList = {
@@ -29,4 +38,5 @@ export type MainStackParamList = {
   Tabs: NavigatorScreenParams<MainTabParamList> | undefined;
   LogSession: undefined;
   Progress: undefined;
+  Evolution: EvolutionParams;
 };

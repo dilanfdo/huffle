@@ -1,7 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -76,7 +75,7 @@ export function SessionLogForm({
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
       >
         {onCancel ? (
           <Pressable onPress={onCancel} style={styles.cancel} accessibilityRole="button">
