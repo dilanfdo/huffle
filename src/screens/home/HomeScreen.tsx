@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { HufflingPlaceholder } from '../../components/huffling/HufflingPlaceholder';
+import { Huffling } from '../../components/huffling/Huffling';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { liveStreak, xpToNextStage } from '../../domain';
 import { useClockStore, useHufflingStore, useStreakStore, useUserStore } from '../../store';
@@ -49,7 +49,7 @@ export function HomeScreen({ navigation, route }: Props) {
             accessibilityHint="Shows evolution progress, streaks and freeze tokens"
             onPress={() => navigation.navigate('Progress')}
           >
-            <HufflingPlaceholder
+            <Huffling
               name={huffling.name}
               stage={huffling.evolutionStage}
               mood={huffling.mood}

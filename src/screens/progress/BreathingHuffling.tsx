@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing } from 'react-native';
-import { HufflingPlaceholder } from '../../components/huffling/HufflingPlaceholder';
+import { HufflingCharacter } from '../../components/huffling/HufflingCharacter';
 import type { EvolutionStageId, Mood } from '../../domain';
 
 /** Winded breathes quick and shallow; energized slow and full — the app's core metaphor. */
@@ -57,7 +57,7 @@ export function BreathingHuffling({ stage, mood, size = 168 }: Props) {
 
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
-      <HufflingPlaceholder stage={stage} mood={mood} size={size} hideLabels />
+      <HufflingCharacter stage={stage} mood={mood} size={size} />
     </Animated.View>
   );
 }

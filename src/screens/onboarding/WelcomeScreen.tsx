@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { HufflingPlaceholder } from '../../components/huffling/HufflingPlaceholder';
+import { Huffling } from '../../components/huffling/Huffling';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { colors } from '../../theme/colors';
 import type { OnboardingStackParamList } from '../../root/navigation/types';
@@ -12,7 +12,7 @@ export function WelcomeScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.body}>
-        <HufflingPlaceholder stage="winded" mood="winded" />
+        <Huffling stage="winded" mood="winded" />
         <Text style={styles.title}>Meet your Huffling</Text>
         <Text style={styles.copy}>
           Huffle is not a workout log. When you move — a walk, a stretch, anything — your

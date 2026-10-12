@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { STAGE_EMOJI } from '../../components/huffling/HufflingPlaceholder';
+import { HufflingCharacter } from '../../components/huffling/HufflingCharacter';
 import { EVOLUTION_STAGES, type EvolutionStageId } from '../../domain';
 import { colors } from '../../theme/colors';
 import { space } from '../../theme/layout';
@@ -42,9 +42,9 @@ export function StageTimeline({ currentStageId, xp }: Props) {
               )}
             </View>
             <View style={[styles.content, isLast && styles.contentLast]}>
-              <Text style={[styles.emoji, status === 'upcoming' && styles.dim]}>
-                {STAGE_EMOJI[stage.id]}
-              </Text>
+              <View style={status === 'upcoming' ? styles.dim : undefined}>
+                <HufflingCharacter stage={stage.id} mood="neutral" size={48} />
+              </View>
               <View style={styles.text}>
                 <Text style={[styles.stageLabel, status === 'upcoming' && styles.labelDim]}>
                   {stage.label}
@@ -113,10 +113,6 @@ const styles = StyleSheet.create({
   },
   contentLast: {
     paddingBottom: 0,
-  },
-  emoji: {
-    fontSize: 28,
-    lineHeight: 36,
   },
   dim: {
     opacity: 0.45,

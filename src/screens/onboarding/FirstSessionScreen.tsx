@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics';
-import { HufflingPlaceholder } from '../../components/huffling/HufflingPlaceholder';
+import { Huffling } from '../../components/huffling/Huffling';
 import { SessionLogForm } from '../../components/SessionLogForm';
 import { logSession, markOnboardingComplete, useHufflingStore } from '../../store';
 
@@ -10,7 +10,7 @@ export function FirstSessionScreen() {
     <SessionLogForm
       header={
         huffling ? (
-          <HufflingPlaceholder
+          <Huffling
             name={huffling.name}
             stage={huffling.evolutionStage}
             mood={huffling.mood}

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { MOOD_LABEL } from '../../components/huffling/HufflingPlaceholder';
+import { MOOD_LABEL } from '../../components/huffling/Huffling';
 import {
   daysToNextFreezeToken,
   liveStreak,
