@@ -1,0 +1,21 @@
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { LogSessionScreen } from '../../screens/logSession/LogSessionScreen';
+import { ProgressScreen } from '../../screens/progress/ProgressScreen';
+import { MainTabs } from './MainTabs';
+import type { MainStackParamList } from './types';
+
+const MainStack = createNativeStackNavigator<MainStackParamList>();
+
+export function MainNavigator() {
+  return (
+    <MainStack.Navigator screenOptions={{ headerShown: false }}>
+      <MainStack.Screen name="Tabs" component={MainTabs} />
+      <MainStack.Screen
+        name="LogSession"
+        component={LogSessionScreen}
+        options={{ presentation: 'modal' }}
+      />
+      <MainStack.Screen name="Progress" component={ProgressScreen} />
+    </MainStack.Navigator>
+  );
+}
