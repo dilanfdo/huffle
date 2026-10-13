@@ -216,6 +216,39 @@ The brand does not need to change as this expands — Finch launched narrower th
 
 ---
 
+## 8b. Android backup & sync (Google Drive)
+
+Android has no CloudKit, so cross-device backup uses the user's own Google Drive hidden app folder (`drive.appdata` scope — Huffle cannot see any other Drive file). It stays hidden until a Google client id is supplied, so builds without one behave exactly as before.
+
+- **How it works:** one JSON snapshot (`huffle-sync.json`) is merged with the local database — union by id, newest `updatedAt` wins, weekly goals keyed by week start, sessions never deleted — so devices converge. Triggered on launch/resume, shortly after local writes, and from Settings ("Sync now"). A fresh install can restore from the Welcome screen. If two different Hufflings exist (a device onboarded before connecting), the user picks which to keep.
+- **Code:** `src/sync/drive/` (pure merge in `snapshot.ts`, REST client in `driveApi.ts`, orchestration in `engine.ts`, Google sign-in in `auth.ts`); platform dispatch in `src/sync/provider*.ts`; UI in `src/components/backup/`.
+- **To enable (Google Cloud Console):**
+  1. Create a project, enable the **Google Drive API**.
+  2. OAuth consent screen: External; add scope `.../auth/drive.appdata`; add test users while in Testing.
+  3. Create an OAuth client of type **Web application** — its id is the `webClientId`.
+  4. Create OAuth clients of type **Android** for package `app.nexusdigitallabs.huffle`, one per signing key: the debug keystore, the upload key, and the **Play App Signing** key (shown in Play Console → App integrity).
+  5. Set `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=<web client id>` in `.env`, then rebuild.
+- **Verified:** merge, conflict, and REST behaviour are unit-tested. The live Google sign-in and Drive round trip can only be exercised once the client ids above exist.
+- **iOS later:** the Drive provider could also serve iOS if cross-platform moves matter; the library then needs its URL-scheme config plugin.
+
+## 8c. Monetization
+
+Principle: the free app is the complete habit loop; money comes from delight and depth, never from gating streaks, reminders, or backup.
+
+| Lever | Fit | Notes |
+|---|---|---|
+| **Huffle Plus — annual + lifetime** | Best | More Hufflings / a collection (roadmap v3), cosmetics and seasonal skins, extra habit categories (water, sleep, reading — v2), weekly insights, themes/widgets, extra freeze slots. Annual ~$19.99, lifetime ~$39.99 to start; test price points. |
+| **Cosmetic packs (one-time)** | Good | Low-pressure fit for "seasonal cosmetics". Can sit beside Plus. |
+| **Tip jar** | Minor | Goodwill, tiny revenue. |
+| **Ads** | Avoid | Clashes with the calm, no-guilt brand, needs consent flows and data collection, and erodes trust. |
+| **B2B / workplace wellness** | Later | Roadmap v5; needs accounts and a backend. |
+
+- **When to ask:** a soft, dismissible paywall at moments of delight (first evolution, a 7-day streak), not on launch.
+- **Tech:** RevenueCat (`react-native-purchases`) over Play Billing; entitlement cached locally so it works offline. Needs Play Console products, license testers, and a native rebuild.
+- **Heads-up — privacy:** purchases introduce an anonymous purchase id shared with RevenueCat. The privacy policy and Play Data safety form must change from "collects nothing" before this ships.
+- **Fees and costs:** Play's one-time $25 account fee; Google currently takes 15% of subscriptions and of the first $1M a year of other digital sales (verify current terms); RevenueCat's free tier is sized for small apps (re-check current pricing).
+- **Realistic expectations:** revenue is a function of installs × retention × conversion, and habit apps retain poorly at day 30. Plan on low single-digit paid conversion and treat early revenue as validation, not income, until retention and distribution are proven.
+
 ## 9. Android Release Checklist & Open Items
 
 **Built and verified on an Android emulator:** onboarding with guaranteed first session, logging, streak/freeze logic, evolution celebration, journey screen, reminders (channel + permission), keyboard behaviour, release build with upload-key signing.
