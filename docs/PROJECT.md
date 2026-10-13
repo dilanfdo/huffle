@@ -227,7 +227,7 @@ Android has no CloudKit, so cross-device backup uses the user's own Google Drive
   2. OAuth consent screen: External; add scope `.../auth/drive.appdata`; add test users while in Testing.
   3. Create an OAuth client of type **Web application** — its id is the `webClientId`.
   4. Create OAuth clients of type **Android** for package `app.nexusdigitallabs.huffle`, one per signing key: the debug keystore, the upload key, and the **Play App Signing** key (shown in Play Console → App integrity).
-  5. Set `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=<web client id>` in `.env`, then rebuild.
+  5. Set `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=<web client id>` in `.env.local` (git-ignored; the id is public but this keeps config out of history), then rebuild. If the Gradle JS bundle task reports UP-TO-DATE, run `./gradlew :app:createBundleReleaseJsAndAssets --rerun` so the value is inlined.
 - **Verified:** merge, conflict, and REST behaviour are unit-tested. The live Google sign-in and Drive round trip can only be exercised once the client ids above exist.
 - **iOS later:** the Drive provider could also serve iOS if cross-platform moves matter; the library then needs its URL-scheme config plugin.
 
