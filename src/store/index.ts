@@ -1,4 +1,4 @@
-export { bootstrapStores, createLocalProfile, getCurrentWeeklyGoal, markOnboardingComplete, refreshForNow, setWeeklyGoalTarget } from './bootstrap';
+export { bootstrapStores, type BootstrapState, createLocalProfile, getCurrentWeeklyGoal, markOnboardingComplete, refreshForNow, setWeeklyGoalTarget } from './bootstrap';
 export { logSession } from './logSession';
 export type { LogSessionInput, LogSessionResult } from './logTypes';
 export { useClockStore } from './clockStore';

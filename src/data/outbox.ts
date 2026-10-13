@@ -19,9 +19,17 @@ export type OutboxItem = {
   queuedAt: string;
 };
 
+type OutboxListener = () => void;
+const listeners = new Set<OutboxListener>();
+
+/** Notified after any local write is queued for sync. Returns an unsubscribe function. */
+export function onOutboxChange(listener: OutboxListener): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
 export async function enqueueOutbox(recordType: SyncRecordType, recordId: string): Promise<void> {
-  // CloudKit is the only sync target and is iOS-only; nothing would ever flush this queue elsewhere.
-  if (Platform.OS !== 'ios') {
+  if (Platform.OS === 'web') {
     return;
   }
   const db = await getDb();
@@ -33,6 +41,7 @@ export async function enqueueOutbox(recordType: SyncRecordType, recordId: string
     recordId,
     nowIso(),
   );
+  listeners.forEach((listener) => listener());
 }
 
 export async function listOutbox(): Promise<OutboxItem[]> {

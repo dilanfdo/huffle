@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CloudBackupSection } from '../../components/backup/CloudBackupSection';
 import { syncLocalNotifications } from '../../notifications/schedule';
 import { setWeeklyGoalTarget, useHufflingStore, useSyncStore, useUserStore } from '../../store';
 import { colors } from '../../theme/colors';
@@ -75,7 +76,9 @@ export function SettingsScreen() {
               <Text style={styles.label}>iCloud</Text>
               <Text style={styles.copy}>{icloudCopy(availability)}</Text>
             </>
-          ) : null}
+          ) : (
+            <CloudBackupSection />
+          )}
 
           <Text style={styles.label}>Huffling name</Text>
           <TextInput

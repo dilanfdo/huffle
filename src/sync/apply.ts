@@ -71,16 +71,26 @@ async function writeDomain(item: DomainRecord): Promise<void> {
 }
 
 /** Last-write-wins on updatedAt. SessionLog is still merged by id (no deletes). */
+export async function applyDomainRecord(item: DomainRecord): Promise<boolean> {
+  if (!item.record.updatedAt) {
+    return false;
+  }
+  const local = await localUpdatedAt(item);
+  if (local && newerUpdatedAt(local, item.record.updatedAt)) {
+    return false;
+  }
+  await writeDomain(item);
+  return true;
+}
+
 export async function applyRemoteRecord(raw: CloudKitRecordLike): Promise<boolean> {
   const parsed = fromCloudKitRecord(raw);
-  if (!parsed || !parsed.record.updatedAt) {
+  if (!parsed) {
     return false;
   }
-  const local = await localUpdatedAt(parsed);
-  if (local && newerUpdatedAt(local, parsed.record.updatedAt)) {
+  if (!(await applyDomainRecord(parsed))) {
     return false;
   }
-  await writeDomain(parsed);
   if (raw.changeTag) {
     await setChangeTag(parsed.type, parsed.record.id, raw.changeTag);
   }

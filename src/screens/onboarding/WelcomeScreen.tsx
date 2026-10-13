@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Huffling } from '../../components/huffling/Huffling';
+import { RestoreFromDrive } from '../../components/backup/RestoreFromDrive';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { colors } from '../../theme/colors';
 import type { OnboardingStackParamList } from '../../root/navigation/types';
@@ -21,6 +22,13 @@ export function WelcomeScreen({ navigation }: Props) {
       </View>
       <View style={styles.footer}>
         <PrimaryButton label="Get started" onPress={() => navigation.navigate('NameHuffling')} />
+        <RestoreFromDrive
+          onRestored={(state) => {
+            if (!state.onboardingComplete) {
+              navigation.navigate(state.hasProfile ? 'FirstSession' : 'NameHuffling');
+            }
+          }}
+        />
       </View>
     </SafeAreaView>
   );

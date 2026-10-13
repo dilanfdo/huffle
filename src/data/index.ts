@@ -1,5 +1,6 @@
 export { closeDb, getDb, runInTransaction } from './db';
 export { createId, nowIso } from './ids';
+export { clearUserData } from './reset';
 export * from './types';
 export { SEEDED_HABIT_TYPES } from './seed';
 

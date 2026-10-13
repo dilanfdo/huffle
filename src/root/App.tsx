@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, AppState, Platform, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { syncLocalNotifications } from '../notifications/schedule';
 import { bootstrapStores, refreshForNow, useUserStore } from '../store';
-import { restoreFromCloudIfEmpty, startCloudKitSync } from '../sync';
+import { restoreFromCloudIfEmpty, startSync } from '../sync';
 import { colors } from '../theme/colors';
 import { RootNavigator } from './navigation/RootNavigator';
 import type { OnboardingStackParamList } from './navigation/types';
@@ -26,7 +26,7 @@ export default function App() {
     void (async () => {
       try {
         let result = await bootstrapStores();
-        if (!result.hasProfile && Platform.OS === 'ios') {
+        if (!result.hasProfile) {
           if (!cancelled) {
             setBoot({ status: 'restoring' });
           }
@@ -35,7 +35,7 @@ export default function App() {
             result = await bootstrapStores();
           }
         }
-        await startCloudKitSync();
+        await startSync();
         if (result.onboardingComplete) {
           await syncLocalNotifications();
         }
@@ -69,7 +69,7 @@ export default function App() {
         await refreshForNow();
         await useUserStore.getState().markOpened();
         await syncLocalNotifications();
-        await startCloudKitSync();
+        await startSync();
       })();
     });
     return () => sub.remove();
@@ -86,7 +86,7 @@ export default function App() {
             <ActivityIndicator color={colors.accent} />
           ) : null}
           {boot.status === 'restoring' ? (
-            <Text style={styles.restore}>Looking for your Huffling in iCloud…</Text>
+            <Text style={styles.restore}>Looking for your backup…</Text>
           ) : null}
           {boot.status === 'error' ? <Text style={styles.error}>{boot.message}</Text> : null}
         </View>
