@@ -3,12 +3,11 @@ import { Platform } from 'react-native';
 import { useHufflingStore } from '../store/hufflingStore';
 import { useStreakStore } from '../store/streakStore';
 import { useUserStore } from '../store/userStore';
-import { testReminderCopy } from './copy';
 import { planNotifications } from './plan';
 
-const ANDROID_CHANNEL_ID = 'huffle-reminders';
-const TEST_ID = 'huffle-test-reminder';
-const TEST_DELAY_SECONDS = 10;
+export const ANDROID_CHANNEL_ID = 'huffle-reminders';
+/** Id of the dev-only test reminder; a resync must not cancel it mid-flight. */
+export const TEST_ID = 'huffle-test-reminder';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -30,7 +29,7 @@ async function ensureAndroidChannel(): Promise<void> {
   });
 }
 
-async function ensurePermission(): Promise<boolean> {
+export async function ensurePermission(): Promise<boolean> {
   if (Platform.OS === 'web') {
     return false;
   }
@@ -96,36 +95,4 @@ async function runSync(now: Date): Promise<void> {
 export function syncLocalNotifications(now: Date = new Date()): Promise<void> {
   queue = queue.then(() => runSync(now)).catch(() => undefined);
   return queue;
-}
-
-export type TestReminderResult = { status: 'scheduled'; inSeconds: number } | { status: 'denied' };
-
-/**
- * Fires one real reminder a few seconds from now through the same channel and
- * permission path as the daily nudges, so users can check delivery themselves.
- */
-export async function sendTestReminder(): Promise<TestReminderResult> {
-  if (!(await ensurePermission())) {
-    return { status: 'denied' };
-  }
-  const user = useUserStore.getState().user;
-  const name = useHufflingStore.getState().huffling?.name ?? 'Your Huffling';
-  const when = new Date();
-  when.setHours(user?.reminderHour ?? 19, user?.reminderMinute ?? 0, 0, 0);
-  const copy = testReminderCopy({
-    name,
-    reminderTime: when.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
-  });
-  await Notifications.cancelScheduledNotificationAsync(TEST_ID);
-  await Notifications.scheduleNotificationAsync({
-    identifier: TEST_ID,
-    content: { title: copy.title, body: copy.body },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-      seconds: TEST_DELAY_SECONDS,
-      repeats: false,
-      channelId: ANDROID_CHANNEL_ID,
-    },
-  });
-  return { status: 'scheduled', inSeconds: TEST_DELAY_SECONDS };
 }

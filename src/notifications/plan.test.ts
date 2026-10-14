@@ -87,7 +87,7 @@ describe('planNotifications', () => {
 
 describe('testReminderCopy', () => {
   it('is clearly a test, names the Huffling and states the real reminder time', async () => {
-    const { testReminderCopy } = await import('./copy');
+    const { testReminderCopy } = await import('./testReminderCopy');
     const copy = testReminderCopy({ name: 'Pip', reminderTime: '7:00 PM' });
     expect(copy.title).toContain('Pip');
     expect(copy.body).toMatch(/test reminder/i);
