@@ -13,7 +13,7 @@ import {
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CloudBackupSection } from '../../components/backup/CloudBackupSection';
-import { syncLocalNotifications } from '../../notifications/schedule';
+import { sendTestReminder, syncLocalNotifications } from '../../notifications/schedule';
 import { setWeeklyGoalTarget, useHufflingStore, useSyncStore, useUserStore } from '../../store';
 import { colors } from '../../theme/colors';
 
@@ -25,6 +25,7 @@ export function SettingsScreen() {
   const [name, setName] = useState(huffling?.name ?? '');
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
+  const [testing, setTesting] = useState(false);
   const [androidPickerOpen, setAndroidPickerOpen] = useState(false);
 
   const reminderDate = reminderAsDate(user?.reminderHour ?? 19, user?.reminderMinute ?? 0);
@@ -55,6 +56,23 @@ export function SettingsScreen() {
     });
     await syncLocalNotifications();
     setSaved('Reminder time updated');
+  }
+
+  async function sendTest() {
+    if (testing) {
+      return;
+    }
+    setTesting(true);
+    try {
+      const result = await sendTestReminder();
+      setSaved(
+        result.status === 'scheduled'
+          ? `Test reminder on its way. Lock your phone — it arrives in about ${result.inSeconds} seconds.`
+          : 'Notifications are turned off for Huffle. Turn them on in system settings to get reminders.',
+      );
+    } finally {
+      setTesting(false);
+    }
   }
 
   async function bumpGoal(delta: number) {
@@ -138,6 +156,16 @@ export function SettingsScreen() {
             Up to two gentle nudges a day: this reminder and, when a streak is at stake, one in the
             evening. They stop on their own if you’re away for a week.
           </Text>
+          <Pressable
+            onPress={() => void sendTest()}
+            disabled={testing}
+            style={styles.inlineButton}
+            accessibilityRole="button"
+            accessibilityLabel="Send a test reminder"
+            accessibilityHint="Sends a notification to this phone in about ten seconds"
+          >
+            <Text style={styles.inlineButtonText}>{testing ? 'Sending…' : 'Send a test reminder'}</Text>
+          </Pressable>
           <Pressable onPress={() => void Linking.openSettings()} style={styles.inlineButton} accessibilityRole="button">
             <Text style={styles.inlineButtonText}>Notification settings</Text>
           </Pressable>

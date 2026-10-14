@@ -107,3 +107,11 @@ export function streakRiskCopy(args: { name: string; streak: number; hasFreeze: 
   ] as const;
   return pick(options, seed);
 }
+
+/** Content for the Settings "Send a test reminder" button. Clearly a test, but in the Huffling's voice. */
+export function testReminderCopy(args: { name: string; reminderTime: string }): { title: string; body: string } {
+  return {
+    title: `${args.name} is around`,
+    body: `This is a test reminder. Your daily nudge arrives at ${args.reminderTime}.`,
+  };
+}

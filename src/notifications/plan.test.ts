@@ -84,3 +84,14 @@ describe('planNotifications', () => {
     expect(plan.some((n) => n.title.includes('Pip') || n.body.includes('Pip'))).toBe(true);
   });
 });
+
+describe('testReminderCopy', () => {
+  it('is clearly a test, names the Huffling and states the real reminder time', async () => {
+    const { testReminderCopy } = await import('./copy');
+    const copy = testReminderCopy({ name: 'Pip', reminderTime: '7:00 PM' });
+    expect(copy.title).toContain('Pip');
+    expect(copy.body).toMatch(/test reminder/i);
+    expect(copy.body).toContain('7:00 PM');
+    expect(copy.body).not.toMatch(/guilt|miss|streak/i);
+  });
+});
