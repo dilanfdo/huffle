@@ -1,6 +1,8 @@
 # Huffle Privacy Policy
 
-_Last updated: [date]_
+_Last updated: October 14, 2026_
+
+_Canonical hosted copy: https://nexusdigitallabs.dev/huffle/privacy-policy/ (keep both in sync)._
 
 Huffle is a habit app published by Nexus Digital Labs. This policy explains what happens to your information when you use it.
 
@@ -29,4 +31,4 @@ Huffle is not directed at children under 13 and does not knowingly collect any p
 If this policy changes, the updated version will be posted at the same address with a new date.
 
 ## Contact
-Questions: [contact email]
+Questions: hello@nexusdigitallabs.dev

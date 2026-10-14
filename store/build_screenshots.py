@@ -3,7 +3,9 @@
 Builds Google Play listing screenshots (1080x1920 PNG) from raw emulator captures.
 
   store/source/<name>.png   raw 1080x2424 captures of the real app
-  store/screenshots/NN-*.png  finished panels (headline + device frame)
+  store/screenshots/phone/NN-*.png        1080x1920  phone
+  store/screenshots/tablet-7in/NN-*.png   1200x1920  7-inch tablet
+  store/screenshots/tablet-10in/NN-*.png  1600x2560  10-inch tablet
 
 Run:  python3 store/build_screenshots.py
 Needs Google Chrome (headless) for rendering.
@@ -18,7 +20,13 @@ SOURCE = ROOT / "source"
 OUT = ROOT / "screenshots"
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
-W, H = 1080, 1920
+# (folder, design width, design height, device scale factor -> output pixels)
+TARGETS = [
+    ("phone", 1080, 1920, 1.0),
+    ("tablet-7in", 1200, 1920, 1.0),
+    ("tablet-10in", 1200, 1920, 4 / 3),
+]
+BASE_W = 1080  # float x-positions below were authored for this width
 
 # Brand palette (src/theme/colors.ts)
 CORAL, ORANGE, SAGE, SAGE_DK, INK = "#E07A5F", "#F4A261", "#81B29A", "#5E8F78", "#3D405B"
@@ -59,7 +67,7 @@ def data_uri(path: Path) -> str:
     return "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode()
 
 
-def confetti_html() -> str:
+def confetti_html(W: int) -> str:
     colors = ["#FFFFFF", "#FFE9B5", "#FFD1B8", "#CDE7DA", "#3D405B", "#F4A261"]
     pieces = []
     seed = 7
@@ -80,17 +88,19 @@ def confetti_html() -> str:
     return "".join(pieces)
 
 
-def html_for(p: dict) -> str:
+def html_for(p: dict, W: int, H: int) -> str:
     src = SOURCE / f"{p['src']}.png"
     shot = data_uri(src)
     c1, c2 = p["bg"]
     phone_w = 780
     phone_h = int(phone_w * 2424 / 1080)
+    shift = W - BASE_W
     floats = "".join(
-        f'<div class="tile" style="left:{x}px;top:{y}px;font-size:{s}px;transform:rotate({r}deg)">{e}</div>'
+        f'<div class="tile" style="left:{x + (shift if x > BASE_W / 2 else 0)}px;top:{y}px;'
+        f'font-size:{s}px;transform:rotate({r}deg)">{e}</div>'
         for e, s, x, y, r in p["floats"]
     )
-    confetti = confetti_html() if p.get("confetti") else ""
+    confetti = confetti_html(W) if p.get("confetti") else ""
     return f"""<!doctype html><html><head><meta charset="utf-8">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap');
@@ -157,23 +167,28 @@ p{{position:absolute;left:66px;top:262px;color:rgba(255,255,255,.95);font-weight
     print("wrote", out.name)
 
 
+def render(page: Path, out: Path, w: int, h: int, scale: float) -> None:
+    subprocess.run(
+        [CHROME, "--headless=new", "--disable-gpu", "--hide-scrollbars",
+         f"--force-device-scale-factor={scale}", f"--window-size={w},{h}",
+         "--virtual-time-budget=6000", f"--screenshot={out}", page.as_uri()],
+        check=True, capture_output=True,
+    )
+
+
 def main() -> None:
-    OUT.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
-        for p in PANELS:
-            if not (SOURCE / f"{p['src']}.png").exists():
-                print("skip (no source):", p["file"])
-                continue
-            page = Path(tmp) / f"{p['file']}.html"
-            page.write_text(html_for(p), encoding="utf-8")
-            out = OUT / f"{p['file']}.png"
-            subprocess.run(
-                [CHROME, "--headless=new", "--disable-gpu", "--hide-scrollbars",
-                 "--force-device-scale-factor=1", f"--window-size={W},{H}",
-                 "--virtual-time-budget=6000", f"--screenshot={out}", page.as_uri()],
-                check=True, capture_output=True,
-            )
-            print("wrote", out.name)
+        for folder, w, h, scale in TARGETS:
+            target = OUT / folder
+            target.mkdir(parents=True, exist_ok=True)
+            for p in PANELS:
+                if not (SOURCE / f"{p['src']}.png").exists():
+                    print("skip (no source):", p["file"])
+                    continue
+                page = Path(tmp) / f"{folder}-{p['file']}.html"
+                page.write_text(html_for(p, w, h), encoding="utf-8")
+                render(page, target / f"{p['file']}.png", w, h, scale)
+                print("wrote", f"{folder}/{p['file']}.png")
         feature_graphic(Path(tmp))
 
 
