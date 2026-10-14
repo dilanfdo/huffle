@@ -13,6 +13,7 @@ import {
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CloudBackupSection } from '../../components/backup/CloudBackupSection';
+import { PrivacyPolicyLink } from '../../components/PrivacyPolicyLink';
 import { syncLocalNotifications } from '../../notifications/schedule';
 import { setWeeklyGoalTarget, useHufflingStore, useSyncStore, useUserStore } from '../../store';
 import { colors } from '../../theme/colors';
@@ -148,6 +149,13 @@ export function SettingsScreen() {
           <Pressable onPress={() => void Linking.openSettings()} style={styles.inlineButton} accessibilityRole="button">
             <Text style={styles.inlineButtonText}>Notification settings</Text>
           </Pressable>
+
+          <Text style={styles.label}>About</Text>
+          <Text style={styles.copy}>
+            Huffle keeps your data on this device. Read how it works, and what the optional Google Drive
+            backup does, in the privacy policy.
+          </Text>
+          <PrivacyPolicyLink />
 
           <Text style={styles.meta}>
             Streak freeze tokens: {user?.streakFreezeTokens ?? 0} (used automatically if you miss one day)

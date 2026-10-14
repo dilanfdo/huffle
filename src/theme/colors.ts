@@ -19,4 +19,7 @@ export const colors = {
   onCalmContainer: '#2F5744',
   // Secondary text that still passes AA on surfaceContainer (inkMuted does not).
   inkSecondary: '#565A70',
+  // Soft amber for gentle nudges and "glow" moments (never the alarm-coloured coral).
+  glowContainer: '#FDF0D3',
+  onGlowContainer: '#6B4A06',
 } as const;

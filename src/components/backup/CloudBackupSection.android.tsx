@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { connectDrive, disconnectDrive, syncNow } from '../../sync/drive/engine';
+import { PrivacyPolicyLink } from '../PrivacyPolicyLink';
 import { useDriveStore } from '../../sync/drive/store';
 import type { ProfileSummary } from '../../sync/drive/snapshot';
 import { colors } from '../../theme/colors';
@@ -73,6 +74,7 @@ export function CloudBackupSection() {
           >
             <Text style={styles.buttonText}>{syncing ? 'Connecting…' : 'Connect Google Drive'}</Text>
           </Pressable>
+          <PrivacyPolicyLink label="How backup handles your data" />
         </>
       ) : null}
 

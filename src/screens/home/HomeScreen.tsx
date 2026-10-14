@@ -164,8 +164,8 @@ export function HomeScreen({ navigation, route }: Props) {
               <Icon name="gift" size={26} color={colors.onCalmContainer} />
             </View>
             <View style={styles.giftText}>
-              <Text style={styles.riskTitle}>{huffling?.name ?? 'Your Huffling'} found a gift</Text>
-              <Text style={styles.riskCopy}>Tap to open — it's yours to wear today.</Text>
+              <Text style={styles.giftTitle}>{huffling?.name ?? 'Your Huffling'} found a gift</Text>
+              <Text style={styles.giftCopy}>Tap to open — it's yours to wear today.</Text>
             </View>
           </Pressable>
         ) : null}
@@ -284,23 +284,23 @@ const styles = StyleSheet.create({
     gap: space.sm,
   },
   reaction: {
-    backgroundColor: colors.accentContainer,
+    backgroundColor: colors.calmContainer,
     borderRadius: radius.md,
     padding: space.lg,
     gap: space.xs,
   },
   reactionTitle: {
     ...type.titleMedium,
-    color: colors.onAccentContainer,
+    color: colors.onCalmContainer,
     textAlign: 'center',
   },
   reactionCopy: {
     ...type.bodyMedium,
-    color: colors.onAccentContainer,
+    color: colors.onCalmContainer,
     textAlign: 'center',
   },
   risk: {
-    backgroundColor: colors.accentContainer,
+    backgroundColor: colors.glowContainer,
     borderRadius: radius.md,
     padding: space.lg,
     gap: space.xs,
@@ -310,11 +310,19 @@ const styles = StyleSheet.create({
   },
   riskTitle: {
     ...type.titleMedium,
-    color: colors.onAccentContainer,
+    color: colors.onGlowContainer,
   },
   riskCopy: {
     ...type.bodyMedium,
-    color: colors.onAccentContainer,
+    color: colors.onGlowContainer,
+  },
+  giftTitle: {
+    ...type.titleMedium,
+    color: colors.onCalmContainer,
+  },
+  giftCopy: {
+    ...type.bodyMedium,
+    color: colors.onCalmContainer,
   },
   row: {
     flexDirection: 'row',
