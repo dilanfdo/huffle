@@ -29,6 +29,8 @@ export function LogSessionScreen({ navigation }: Props) {
           freezeEarned: result.freezeEarned,
           streakDays: result.streakDays,
           streakMilestone: result.streakMilestone,
+          comebackDays: result.comebackDaysMissed,
+          xpCapped: result.xpCapped,
         };
         if (result.evolved) {
           navigation.replace('Evolution', {

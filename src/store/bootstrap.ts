@@ -14,6 +14,7 @@ import { useHufflingStore } from './hufflingStore';
 import { useSessionStore } from './sessionStore';
 import { useStreakStore } from './streakStore';
 import { useUserStore } from './userStore';
+import { useWardrobeStore } from './wardrobeStore';
 
 export type BootstrapState = {
   ready: boolean;
@@ -80,6 +81,7 @@ export async function bootstrapStores(now: Date = new Date()): Promise<Bootstrap
   await Promise.all([
     useSessionStore.getState().loadHabitTypes('fitness'),
     useSessionStore.getState().loadSessions(),
+    useWardrobeStore.getState().load(),
   ]);
 
   if (huffling) {

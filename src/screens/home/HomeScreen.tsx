@@ -12,11 +12,13 @@ import { SpeechBubble } from '../../components/anim/SpeechBubble';
 import { StreakFlame } from '../../components/anim/StreakFlame';
 import { useCountUp } from '../../components/anim/useCountUp';
 import { Huffling } from '../../components/huffling/Huffling';
+import { GlowMeter } from '../../components/home/GlowMeter';
 import { WeekDots } from '../../components/home/WeekDots';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { hufflingLine, liveStreak, stageProgress, toLocalDateString, weekDays } from '../../domain';
 import {
   useClockStore,
+  useCosmetics,
   useHufflingStore,
   useSessionStore,
   useStreakStore,
@@ -41,6 +43,7 @@ export function HomeScreen({ navigation, route }: Props) {
   const today = useClockStore((s) => s.today);
   const reaction = route.params?.reaction;
   const [burst, setBurst] = useState<number | null>(null);
+  const { worn, giftReady, giftToday, glow } = useCosmetics();
 
   const streakDays = streak ? liveStreak(streak, freezeTokens, today) : 0;
   const loggedToday = streak?.lastCompletedDate === today;
@@ -78,7 +81,9 @@ export function HomeScreen({ navigation, route }: Props) {
     return () => clearTimeout(timer);
   }, [navigation, reaction]);
 
-  const celebrate = Boolean(reaction && (reaction.evolved || reaction.streakMilestone));
+  const celebrate = Boolean(
+    reaction && (reaction.evolved || reaction.streakMilestone || reaction.comebackDays),
+  );
   const showAtRisk = !loggedToday && streakDays >= 2 && !reaction;
 
   const reactionTitle = reaction
@@ -86,7 +91,11 @@ export function HomeScreen({ navigation, route }: Props) {
       ? `${reaction.name} reached ${reaction.stageLabel}`
       : reaction.streakMilestone
         ? `${reaction.streakMilestone}-day streak!`
-        : `${reaction.name} perked up`
+        : reaction.comebackDays
+          ? 'Welcome back!'
+          : reaction.xpCapped
+            ? `${reaction.name} is fully glowing today`
+            : `${reaction.name} perked up`
     : '';
 
   return (
@@ -107,6 +116,7 @@ export function HomeScreen({ navigation, route }: Props) {
                     name={huffling.name}
                     stage={huffling.evolutionStage}
                     mood={huffling.mood}
+                    accessory={worn}
                   />
                 </Pressable>
               </BouncyView>
@@ -117,13 +127,40 @@ export function HomeScreen({ navigation, route }: Props) {
           </View>
         ) : null}
 
+        <GlowMeter counted={glow.counted} total={glow.total} full={glow.full} />
+
+        {giftReady && giftToday && !reaction ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${huffling?.name ?? 'Your Huffling'} found a gift. Open it.`}
+            onPress={() => navigation.navigate('Gift')}
+            style={({ pressed }) => [styles.gift, pressed && styles.riskPressed]}
+          >
+            <Text style={styles.giftEmoji}>🎁</Text>
+            <View style={styles.giftText}>
+              <Text style={styles.riskTitle}>{huffling?.name ?? 'Your Huffling'} found a gift</Text>
+              <Text style={styles.riskCopy}>Tap to open — it's yours to wear today.</Text>
+            </View>
+          </Pressable>
+        ) : null}
+
         {reaction ? (
           <View style={styles.reaction} accessibilityLiveRegion="polite">
             <Text style={styles.reactionTitle}>{reactionTitle}</Text>
             <Text style={styles.reactionCopy}>
-              +{reaction.xpAwarded} XP
-              {reaction.firstSessionOfDay ? ' · streak kept going' : ' · extra session today'}
+              {reaction.xpCapped
+                ? "Today's glow is full. This still counts — more XP tomorrow."
+                : `+${reaction.xpAwarded} XP${
+                    reaction.firstSessionOfDay ? ' · streak kept going' : ' · extra session today'
+                  }`}
             </Text>
+            {reaction.comebackDays ? (
+              <Text style={styles.reactionCopy}>
+                {reaction.comebackDays === 1
+                  ? `${reaction.name} missed you. Every comeback counts.`
+                  : `${reaction.comebackDays} days away and you're back. ${reaction.name} is thrilled.`}
+              </Text>
+            ) : null}
             {reaction.freezeUsed ? (
               <Text style={styles.reactionCopy}>A freeze token covered your missed day.</Text>
             ) : null}
@@ -184,18 +221,29 @@ export function HomeScreen({ navigation, route }: Props) {
           <Text style={styles.weekTitle}>This week</Text>
           <WeekDots days={days} />
           <Text style={styles.weekCopy}>
-            {done} of {target} sessions — showing up is the whole point
+            {done >= target
+              ? `${done} ${done === 1 ? 'session' : 'sessions'} this week — goal reached`
+              : `${done} of ${target} sessions — showing up is the whole point`}
           </Text>
         </View>
 
         {huffling ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => navigation.navigate('Progress')}
-            style={({ pressed }) => [styles.journeyLink, pressed && styles.journeyLinkPressed]}
-          >
-            <Text style={styles.journeyLinkText}>See {huffling.name}’s journey</Text>
-          </Pressable>
+          <View style={styles.links}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => navigation.navigate('Progress')}
+              style={({ pressed }) => [styles.journeyLink, pressed && styles.journeyLinkPressed]}
+            >
+              <Text style={styles.journeyLinkText}>{huffling.name}’s journey</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => navigation.navigate('Wardrobe')}
+              style={({ pressed }) => [styles.journeyLink, pressed && styles.journeyLinkPressed]}
+            >
+              <Text style={styles.journeyLinkText}>Wardrobe</Text>
+            </Pressable>
+          </View>
         ) : null}
       </ScrollView>
 
@@ -304,6 +352,26 @@ const styles = StyleSheet.create({
   weekCopy: {
     ...type.bodyMedium,
     color: colors.inkSecondary,
+  },
+  gift: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    backgroundColor: colors.calmContainer,
+    borderRadius: radius.md,
+    padding: space.lg,
+  },
+  giftEmoji: {
+    fontSize: 34,
+  },
+  giftText: {
+    flex: 1,
+    gap: space.xs,
+  },
+  links: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: space.sm,
   },
   journeyLink: {
     alignSelf: 'center',

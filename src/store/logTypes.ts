@@ -18,6 +18,10 @@ export type LogSessionResult = {
   freezeUsed: boolean;
   /** A freeze token was earned by reaching a streak milestone on this log. */
   freezeEarned: boolean;
+  /** Whole days missed when this log restarted a lapsed streak; null otherwise. */
+  comebackDaysMissed: number | null;
+  /** The daily glow is used up, so this session earned no XP (it still counts). */
+  xpCapped: boolean;
   /** Streak length after this log. */
   streakDays: number;
   /** Set when this log lands the streak on a celebration length. */

@@ -7,3 +7,5 @@ export { useSessionStore } from './sessionStore';
 export { useStreakStore } from './streakStore';
 export { useSyncStore } from './syncStore';
 export { useUserStore } from './userStore';
+export { useWardrobeStore } from './wardrobeStore';
+export { useCosmetics, type CosmeticsView } from './useCosmetics';

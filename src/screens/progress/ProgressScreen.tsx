@@ -21,6 +21,7 @@ import { colors } from '../../theme/colors';
 import { radius, space } from '../../theme/layout';
 import { type } from '../../theme/typography';
 import { useCountUp } from '../../components/anim/useCountUp';
+import { useCosmetics } from '../../store';
 import { BreathingHuffling } from './BreathingHuffling';
 import { StageTimeline } from './StageTimeline';
 import { StatTile } from './StatTile';
@@ -44,6 +45,7 @@ export function ProgressScreen({ navigation }: Props) {
   const sessionCount = useSessionStore((s) => s.sessions.length);
   const today = useClockStore((s) => s.today);
 
+  const { worn } = useCosmetics();
   const xpShown = useCountUp(huffling?.xp ?? 0, 1000);
   const fill = useRef(new Animated.Value(0)).current;
   const ratio = huffling ? stageProgress(huffling.xp).ratio : 0;
@@ -105,7 +107,7 @@ export function ProgressScreen({ navigation }: Props) {
           accessibilityLabel={`${huffling.name}, ${progress.current.label}, ${MOOD_LABEL[huffling.mood]}`}
           style={styles.hero}
         >
-          <BreathingHuffling stage={huffling.evolutionStage} mood={huffling.mood} />
+          <BreathingHuffling stage={huffling.evolutionStage} mood={huffling.mood} accessory={worn} />
           <Text style={styles.stage}>{progress.current.label}</Text>
           <Text style={styles.mood}>{MOOD_LABEL[huffling.mood]}</Text>
           <Text style={styles.heroCopy}>{MOOD_COPY[huffling.mood](huffling.name)}</Text>

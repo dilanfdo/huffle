@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import type { EvolutionStageId, Mood } from '../../domain';
-import { EVOLUTION_STAGES, stageLabel } from '../../domain';
+import { EVOLUTION_STAGES, stageLabel, type CosmeticId } from '../../domain';
 import { colors } from '../../theme/colors';
 import { HufflingCharacter } from './HufflingCharacter';
 
@@ -15,13 +15,14 @@ type Props = {
   stage: EvolutionStageId;
   mood: Mood;
   size?: number;
+  accessory?: CosmeticId | null;
 };
 
 /** Character with name and stage/mood caption, for screens that don't lay out their own labels. */
-export function Huffling({ name, stage, mood, size = 180 }: Props) {
+export function Huffling({ name, stage, mood, size = 180, accessory = null }: Props) {
   return (
     <View style={styles.wrap}>
-      <HufflingCharacter stage={stage} mood={mood} size={size} />
+      <HufflingCharacter stage={stage} mood={mood} size={size} accessory={accessory} />
       {name ? <Text style={styles.name}>{name}</Text> : null}
       <Text style={styles.meta}>{MOOD_LABEL[mood]}</Text>
       <Text style={styles.stage}>

@@ -15,6 +15,7 @@ import {
 } from '../data';
 import {
   applyCompletedDay,
+  comebackDaysMissed,
   fromLocalDateString,
   moodFromLastFedAt,
   streakMilestone,
@@ -74,7 +75,16 @@ export async function logSession(input: LogSessionInput): Promise<LogSessionResu
   const firstSessionOfDay = streak.lastCompletedDate !== localDate;
   const freezeUsed = streakResult.freezeUsedDates.length > streak.freezeUsedDates.length;
   const freezeEarned = streakResult.freezeTokensDelta + (freezeUsed ? 1 : 0) > 0;
-  const xpAwarded = xpForSession(streakResult.currentStreak);
+  const dayStart = new Date(at.getFullYear(), at.getMonth(), at.getDate());
+  const dayEnd = new Date(dayStart.getFullYear(), dayStart.getMonth(), dayStart.getDate() + 1);
+  const sessionsAlreadyToday = await sessionLogRepository.countSessionLogsOnLocalDay(
+    dayStart.toISOString(),
+    dayEnd.toISOString(),
+  );
+  const xpAwarded = xpForSession(streakResult.currentStreak, sessionsAlreadyToday);
+  const comebackDays = firstSessionOfDay
+    ? comebackDaysMissed(streak.lastCompletedDate, localDate, streakResult.currentStreak)
+    : null;
   const previousStage = huffling.evolutionStage;
   const previousMood = huffling.mood;
   const nextXp = huffling.xp + xpAwarded;
@@ -153,6 +163,8 @@ export async function logSession(input: LogSessionInput): Promise<LogSessionResu
     freezeUsed,
     freezeEarned,
     streakDays: streakResult.currentStreak,
+    comebackDaysMissed: comebackDays,
+    xpCapped: xpAwarded === 0,
     streakMilestone: firstSessionOfDay ? streakMilestone(streakResult.currentStreak) : null,
   };
 }

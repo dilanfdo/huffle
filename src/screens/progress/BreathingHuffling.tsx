@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
 import { useReducedMotion } from '../../components/anim/useReducedMotion';
 import { HufflingCharacter } from '../../components/huffling/HufflingCharacter';
-import type { EvolutionStageId, Mood } from '../../domain';
+import type { CosmeticId, EvolutionStageId, Mood } from '../../domain';
 
 /** Winded breathes quick and shallow; energized slow and full — the app's core metaphor. */
 const BREATH: Record<Mood, { period: number; amplitude: number }> = {
@@ -15,9 +15,10 @@ type Props = {
   stage: EvolutionStageId;
   mood: Mood;
   size?: number;
+  accessory?: CosmeticId | null;
 };
 
-export function BreathingHuffling({ stage, mood, size = 168 }: Props) {
+export function BreathingHuffling({ stage, mood, size = 168, accessory = null }: Props) {
   const scale = useRef(new Animated.Value(1)).current;
   const reduceMotion = useReducedMotion();
 
@@ -40,7 +41,7 @@ export function BreathingHuffling({ stage, mood, size = 168 }: Props) {
 
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
-      <HufflingCharacter stage={stage} mood={mood} size={size} />
+      <HufflingCharacter stage={stage} mood={mood} size={size} accessory={accessory} />
     </Animated.View>
   );
 }

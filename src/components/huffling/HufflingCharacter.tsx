@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, RadialGradient, Stop } from 'react-native-svg';
-import { stageLabel, type EvolutionStageId, type Mood } from '../../domain';
+import { stageLabel, type CosmeticId, type EvolutionStageId, type Mood } from '../../domain';
 import { colors } from '../../theme/colors';
 import { MOOD_FACE, STAGE_PALETTE, STAGE_POSE } from './pose';
 
@@ -27,10 +27,11 @@ type Props = {
   stage: EvolutionStageId;
   mood: Mood;
   size?: number;
+  accessory?: CosmeticId | null;
 };
 
 /** The Huffling, drawn in code: stage sets posture and colour, mood sets face and extras. */
-export function HufflingCharacter({ stage, mood, size = 160 }: Props) {
+export function HufflingCharacter({ stage, mood, size = 160, accessory = null }: Props) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const pose = STAGE_POSE[stage];
   const palette = STAGE_PALETTE[stage];
@@ -44,6 +45,7 @@ export function HufflingCharacter({ stage, mood, size = 160 }: Props) {
   const shoulderY = cy - ry * 0.1;
   const earY = cy - ry * 0.86;
   const feetY = cy + ry - 2;
+  const headTop = cy - ry * 0.95;
 
   const bodyGradient = `${uid}body`;
   const auraGradient = `${uid}aura`;
@@ -75,6 +77,13 @@ export function HufflingCharacter({ stage, mood, size = 160 }: Props) {
       <G transform={`rotate(${pose.lean} ${CX} ${feetY})`}>
         <Ellipse cx={CX - rx * 0.45} cy={feetY} rx={15} ry={9} fill={palette.bottom} />
         <Ellipse cx={CX + rx * 0.45} cy={feetY} rx={15} ry={9} fill={palette.bottom} />
+
+        {accessory === 'cape' ? (
+          <Path
+            d={`M${CX - rx * 0.62} ${cy - ry * 0.45} Q${CX - rx * 1.3} ${cy + ry * 0.3} ${CX - rx * 1.02} ${cy + ry * 0.88} L${CX + rx * 1.02} ${cy + ry * 0.88} Q${CX + rx * 1.3} ${cy + ry * 0.3} ${CX + rx * 0.62} ${cy - ry * 0.45} Z`}
+            fill="#D9534F"
+          />
+        ) : null}
 
         {[-1, 1].map((side) => {
           const sx = CX + side * rx * 0.92;
@@ -155,6 +164,85 @@ export function HufflingCharacter({ stage, mood, size = 160 }: Props) {
             strokeWidth={2}
             strokeLinejoin="round"
           />
+        ) : null}
+
+        {accessory === 'sweatband' ? (
+          <G>
+            <Path
+              d={`M${CX - rx * 0.8} ${cy - ry * 0.5} Q${CX} ${cy - ry * 0.62} ${CX + rx * 0.8} ${cy - ry * 0.5}`}
+              stroke="#4DB6AC"
+              strokeWidth={10}
+              strokeLinecap="round"
+              fill="none"
+            />
+            <Path
+              d={`M${CX - rx * 0.7} ${cy - ry * 0.5} Q${CX} ${cy - ry * 0.62} ${CX + rx * 0.7} ${cy - ry * 0.5}`}
+              stroke="#fff"
+              strokeWidth={2}
+              strokeLinecap="round"
+              fill="none"
+              opacity={0.8}
+            />
+          </G>
+        ) : null}
+        {accessory === 'scarf' ? (
+          <G>
+            <Path
+              d={`M${CX - rx * 0.8} ${cy + ry * 0.5} Q${CX} ${cy + ry * 0.7} ${CX + rx * 0.8} ${cy + ry * 0.5}`}
+              stroke="#E57373"
+              strokeWidth={14}
+              strokeLinecap="round"
+              fill="none"
+            />
+            <Path
+              d={`M${CX + rx * 0.35} ${cy + ry * 0.58} L${CX + rx * 0.5} ${cy + ry * 0.58} L${CX + rx * 0.55} ${cy + ry * 0.95} L${CX + rx * 0.38} ${cy + ry * 0.95} Z`}
+              fill="#EF9A9A"
+            />
+          </G>
+        ) : null}
+        {accessory === 'leaf_crown' ? (
+          <G fill="#81B29A" stroke="#5E8F78" strokeWidth={1.5}>
+            <Ellipse cx={CX - 15} cy={headTop + 4} rx={6} ry={13} transform={`rotate(-35 ${CX - 15} ${headTop + 4})`} />
+            <Ellipse cx={CX} cy={headTop - 2} rx={6.5} ry={14} />
+            <Ellipse cx={CX + 15} cy={headTop + 4} rx={6} ry={13} transform={`rotate(35 ${CX + 15} ${headTop + 4})`} />
+          </G>
+        ) : null}
+        {accessory === 'glasses' ? (
+          <G stroke={FEATURE} strokeWidth={3} fill="#ffffff" fillOpacity={0.25}>
+            <Circle cx={CX - eyeDx} cy={eyeY} r={13} />
+            <Circle cx={CX + eyeDx} cy={eyeY} r={13} />
+            <Path d={`M${CX - eyeDx + 13} ${eyeY} L${CX + eyeDx - 13} ${eyeY}`} fill="none" />
+          </G>
+        ) : null}
+        {accessory === 'bow' ? (
+          <G fill="#F48FB1" stroke="#EC6A9B" strokeWidth={1}>
+            <Path d={`M${CX - rx * 0.5} ${earY + 16} L${CX - rx * 0.5 - 15} ${earY + 7} L${CX - rx * 0.5 - 15} ${earY + 25} Z`} />
+            <Path d={`M${CX - rx * 0.5} ${earY + 16} L${CX - rx * 0.5 + 15} ${earY + 7} L${CX - rx * 0.5 + 15} ${earY + 25} Z`} />
+            <Circle cx={CX - rx * 0.5} cy={earY + 16} r={5} fill="#EC6A9B" />
+          </G>
+        ) : null}
+        {accessory === 'star_pin' ? (
+          <Path
+            d={star(CX + rx * 0.5, cy + ry * 0.45, 10)}
+            fill="#FFD54F"
+            stroke="#F9A825"
+            strokeWidth={1.5}
+          />
+        ) : null}
+        {accessory === 'sunhat' ? (
+          <G>
+            <Path
+              d={`M${CX - 26} ${headTop + 8} Q${CX} ${headTop - 30} ${CX + 26} ${headTop + 8} Z`}
+              fill="#F2CC8F"
+            />
+            <Path
+              d={`M${CX - 24} ${headTop + 5} Q${CX} ${headTop - 6} ${CX + 24} ${headTop + 5}`}
+              stroke="#E07A5F"
+              strokeWidth={5}
+              fill="none"
+            />
+            <Ellipse cx={CX} cy={headTop + 9} rx={48} ry={9} fill="#F2CC8F" stroke="#D9B26F" strokeWidth={1.5} />
+          </G>
         ) : null}
       </G>
 

@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export const CREATE_TABLES_SQL = `
 CREATE TABLE IF NOT EXISTS users (
@@ -78,5 +78,13 @@ CREATE TABLE IF NOT EXISTS sync_change_tags (
   record_id TEXT NOT NULL,
   change_tag TEXT NOT NULL,
   PRIMARY KEY (record_type, record_id)
+);
+`;
+
+/** Device-local preferences (selected cosmetic, gift state). Not synced. */
+export const CREATE_SETTINGS_SQL = `
+CREATE TABLE IF NOT EXISTS app_settings (
+  key TEXT PRIMARY KEY NOT NULL,
+  value TEXT NOT NULL
 );
 `;

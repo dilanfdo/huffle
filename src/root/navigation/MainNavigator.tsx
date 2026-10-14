@@ -1,6 +1,8 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LogSessionScreen } from '../../screens/logSession/LogSessionScreen';
 import { EvolutionScreen } from '../../screens/evolution/EvolutionScreen';
+import { GiftScreen } from '../../screens/gift/GiftScreen';
+import { WardrobeScreen } from '../../screens/wardrobe/WardrobeScreen';
 import { ProgressScreen } from '../../screens/progress/ProgressScreen';
 import { MainTabs } from './MainTabs';
 import type { MainStackParamList } from './types';
@@ -17,6 +19,12 @@ export function MainNavigator() {
         options={{ presentation: 'modal' }}
       />
       <MainStack.Screen name="Progress" component={ProgressScreen} />
+      <MainStack.Screen name="Wardrobe" component={WardrobeScreen} />
+      <MainStack.Screen
+        name="Gift"
+        component={GiftScreen}
+        options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+      />
       <MainStack.Screen
         name="Evolution"
         component={EvolutionScreen}

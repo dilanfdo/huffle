@@ -5,3 +5,4 @@ export * from './streak';
 export * from './week';
 export * from './xp';
 export * from './voice';
+export * from './cosmetics';

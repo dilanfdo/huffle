@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 import { nowIso } from './ids';
-import { CREATE_SYNC_TABLES_SQL, CREATE_TABLES_SQL, SCHEMA_VERSION } from './schema';
+import { CREATE_SETTINGS_SQL, CREATE_SYNC_TABLES_SQL, CREATE_TABLES_SQL, SCHEMA_VERSION } from './schema';
 import { seedHabitTypes } from './seed';
 
 const DB_NAME = 'huffle.db';
@@ -44,6 +44,9 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (current < 2) {
     await db.execAsync(CREATE_SYNC_TABLES_SQL);
     await enqueueExisting(db);
+  }
+  if (current < 3) {
+    await db.execAsync(CREATE_SETTINGS_SQL);
   }
   if (current < SCHEMA_VERSION) {
     await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);

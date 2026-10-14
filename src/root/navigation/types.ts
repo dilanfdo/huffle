@@ -21,6 +21,8 @@ export type SessionReaction = {
   freezeEarned: boolean;
   streakDays: number;
   streakMilestone: number | null;
+  comebackDays: number | null;
+  xpCapped: boolean;
 };
 
 export type EvolutionParams = {
@@ -41,4 +43,6 @@ export type MainStackParamList = {
   LogSession: undefined;
   Progress: undefined;
   Evolution: EvolutionParams;
+  Gift: undefined;
+  Wardrobe: undefined;
 };

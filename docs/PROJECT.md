@@ -216,6 +216,17 @@ The brand does not need to change as this expands — Finch launched narrower th
 
 ---
 
+## 8a. Daily rhythm, gifts and cosmetics
+
+Goal: a Duolingo-like reason to come back tomorrow, without ever blocking the real-world action. Logging, streaks, evolution and reminders are never gated.
+
+- **Daily glow (XP fairness):** each session is always logged and celebrated, but XP diminishes within a day — full, half, a quarter, then none (`SESSION_XP_MULTIPLIERS` in `domain/xp.ts`). Home shows three orbs; when full the Huffling is "fully glowing today". No penalty for rest days.
+- **Welcome back:** a lapsed streak that restarts is celebrated like a milestone (confetti, "Welcome back!"), never framed as failure.
+- **Daily gift = cosmetic of the day:** after the first session of a day, a gift appears; opening it lets the free user wear one item they don't own yet until midnight. Picks are stable per date and exclude owned items.
+- **Earned cosmetics (permanent):** derived from history, so nothing extra to store — sweatband (5 sessions), scarf (7-day streak), leaf crown (Steady), glasses (25 sessions), cape (Thriving). Gift-only items: bow, star pin, sunhat.
+- **Supporter (one-time purchase):** owns every cosmetic permanently, no daily wait. The ownership check is wired (`useWardrobeStore.supporter`); the real purchase is not connected yet — it needs Play Billing (e.g. RevenueCat) and a product in Play Console. A `__DEV__`-only toggle in the Wardrobe lets you preview the Supporter state.
+- **Storage:** device-local `app_settings` key/value table (schema v3): selected item, gift-opened date, supporter flag. Not included in Drive sync.
+
 ## 8b. Android backup & sync (Google Drive)
 
 Android has no CloudKit, so cross-device backup uses the user's own Google Drive hidden app folder (`drive.appdata` scope — Huffle cannot see any other Drive file). It stays hidden until a Google client id is supplied, so builds without one behave exactly as before.

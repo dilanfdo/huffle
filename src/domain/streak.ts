@@ -3,6 +3,22 @@ import { addLocalDays, localDayDiff } from './dates';
 /** Award a freeze token every N consecutive days so tokens accrue without a shop. */
 export const FREEZE_TOKEN_STREAK_INTERVAL = 7;
 
+/**
+ * Whole days missed before a return that restarted the streak, or null when
+ * this log was not a comeback (consecutive day, same day, or a freeze covered it).
+ */
+export function comebackDaysMissed(
+  lastCompletedDate: string | null,
+  completedLocalDate: string,
+  streakAfter: number,
+): number | null {
+  if (lastCompletedDate === null || streakAfter !== 1) {
+    return null;
+  }
+  const gap = localDayDiff(lastCompletedDate, completedLocalDate);
+  return gap >= 2 ? gap - 1 : null;
+}
+
 /** Streak lengths worth a celebration. */
 export const STREAK_MILESTONES = [3, 7, 14, 21, 30, 50, 75, 100, 150, 200, 365] as const;
 
