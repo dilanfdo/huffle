@@ -20,6 +20,7 @@ export function MainTabs() {
     <Tabs.Navigator
       screenOptions={{
         headerShown: false,
+        tabBarAllowFontScaling: false,
         tabBarActiveTintColor: colors.accentDark,
         tabBarInactiveTintColor: colors.inkMuted,
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.line },

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -43,6 +43,9 @@ export function HomeScreen({ navigation, route }: Props) {
   const today = useClockStore((s) => s.today);
   const reaction = route.params?.reaction;
   const [burst, setBurst] = useState<number | null>(null);
+  // Shrink the hero on shorter screens so the cards and links aren't hidden behind the footer.
+  const { height: windowHeight } = useWindowDimensions();
+  const heroSize = Math.round(Math.min(180, Math.max(116, windowHeight * 0.17)));
   const { worn, giftReady, giftToday, glow } = useCosmetics();
 
   const streakDays = streak ? liveStreak(streak, freezeTokens, today) : 0;
@@ -99,7 +102,7 @@ export function HomeScreen({ navigation, route }: Props) {
     : '';
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
         {huffling ? (
           <View style={styles.hero}>
@@ -117,6 +120,7 @@ export function HomeScreen({ navigation, route }: Props) {
                     stage={huffling.evolutionStage}
                     mood={huffling.mood}
                     accessory={worn}
+                    size={heroSize}
                   />
                 </Pressable>
               </BouncyView>
@@ -128,6 +132,25 @@ export function HomeScreen({ navigation, route }: Props) {
         ) : null}
 
         <GlowMeter counted={glow.counted} total={glow.total} full={glow.full} />
+
+        {huffling ? (
+          <View style={styles.links}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => navigation.navigate('Progress')}
+              style={({ pressed }) => [styles.journeyLink, pressed && styles.journeyLinkPressed]}
+            >
+              <Text style={styles.journeyLinkText}>{huffling.name}’s journey</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => navigation.navigate('Wardrobe')}
+              style={({ pressed }) => [styles.journeyLink, pressed && styles.journeyLinkPressed]}
+            >
+              <Text style={styles.journeyLinkText}>Wardrobe</Text>
+            </Pressable>
+          </View>
+        ) : null}
 
         {giftReady && giftToday && !reaction ? (
           <Pressable
@@ -227,24 +250,6 @@ export function HomeScreen({ navigation, route }: Props) {
           </Text>
         </View>
 
-        {huffling ? (
-          <View style={styles.links}>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => navigation.navigate('Progress')}
-              style={({ pressed }) => [styles.journeyLink, pressed && styles.journeyLinkPressed]}
-            >
-              <Text style={styles.journeyLinkText}>{huffling.name}’s journey</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => navigation.navigate('Wardrobe')}
-              style={({ pressed }) => [styles.journeyLink, pressed && styles.journeyLinkPressed]}
-            >
-              <Text style={styles.journeyLinkText}>Wardrobe</Text>
-            </Pressable>
-          </View>
-        ) : null}
       </ScrollView>
 
       <View style={styles.footer}>
@@ -374,14 +379,14 @@ const styles = StyleSheet.create({
     gap: space.sm,
   },
   journeyLink: {
-    alignSelf: 'center',
     minHeight: 48,
     justifyContent: 'center',
     paddingHorizontal: space.lg,
     borderRadius: 24,
+    backgroundColor: colors.surfaceContainer,
   },
   journeyLinkPressed: {
-    backgroundColor: colors.surfaceContainer,
+    opacity: 0.8,
   },
   journeyLinkText: {
     ...type.labelLarge,

@@ -64,13 +64,18 @@ export function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior="padding"
       >
         <ScrollView contentContainerStyle={styles.scroll}>
           <Text style={styles.title}>Settings</Text>
+          {saved ? (
+            <Text style={styles.saved} accessibilityLiveRegion="polite">
+              {saved}
+            </Text>
+          ) : null}
           {Platform.OS === 'ios' ? (
             <>
               <Text style={styles.label}>iCloud</Text>
@@ -140,7 +145,6 @@ export function SettingsScreen() {
           <Text style={styles.meta}>
             Streak freeze tokens: {user?.streakFreezeTokens ?? 0} (used automatically if you miss one day)
           </Text>
-          {saved ? <Text style={styles.saved}>{saved}</Text> : null}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -214,7 +218,8 @@ const styles = StyleSheet.create({
   },
   inlineButton: {
     alignSelf: 'flex-start',
-    paddingVertical: 8,
+    minHeight: 48,
+    justifyContent: 'center',
   },
   inlineButtonText: {
     color: colors.accentDark,
@@ -241,8 +246,8 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   step: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     borderRadius: 12,
     backgroundColor: colors.surface,
     borderWidth: 1,

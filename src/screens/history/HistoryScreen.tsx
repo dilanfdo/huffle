@@ -11,7 +11,7 @@ export function HistoryScreen() {
   const sections = groupByDay(sessions, habitTypes);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <Text style={styles.title}>History</Text>
       <SectionList
         sections={sections}
@@ -30,7 +30,7 @@ export function HistoryScreen() {
               <Text style={styles.label}>{item.label}</Text>
               <Text style={styles.meta}>
                 {item.durationMinutes !== null ? `${item.durationMinutes} min · ` : ''}
-                +{item.xpAwarded} XP
+                {item.xpAwarded > 0 ? `+${item.xpAwarded} XP` : 'Glow was full'}
                 {item.note ? ` · ${item.note}` : ''}
               </Text>
             </View>
