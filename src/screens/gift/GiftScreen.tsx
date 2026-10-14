@@ -5,6 +5,7 @@ import * as Haptics from 'expo-haptics';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Confetti } from '../../components/anim/Confetti';
 import { useReducedMotion } from '../../components/anim/useReducedMotion';
+import { Icon } from '../../components/icons/Icon';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { cosmeticLabel, unlockHint } from '../../domain';
 import type { MainStackParamList } from '../../root/navigation/types';
@@ -91,14 +92,14 @@ export function GiftScreen({ navigation }: Props) {
             onPress={() => void reveal()}
             style={styles.boxWrap}
           >
-            <Animated.Text
+            <Animated.View
               style={[
-                styles.box,
+                styles.boxBadge,
                 { transform: [{ rotate: wiggle.interpolate({ inputRange: [-1, 1], outputRange: ['-9deg', '9deg'] }) }] },
               ]}
             >
-              🎁
-            </Animated.Text>
+              <Icon name="gift" size={84} color={colors.accentDark} strokeWidth={1.6} />
+            </Animated.View>
             <Text style={styles.title}>{huffling.name} found something!</Text>
             <Text style={styles.body}>Tap to open</Text>
           </Pressable>
@@ -158,8 +159,13 @@ const styles = StyleSheet.create({
     padding: space.xl,
     borderRadius: radius.xl,
   },
-  box: {
-    fontSize: 110,
+  boxBadge: {
+    width: 168,
+    height: 168,
+    borderRadius: 84,
+    backgroundColor: colors.accentContainer,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   revealed: {
     alignItems: 'center',

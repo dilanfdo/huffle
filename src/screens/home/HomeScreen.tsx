@@ -12,6 +12,7 @@ import { SpeechBubble } from '../../components/anim/SpeechBubble';
 import { StreakFlame } from '../../components/anim/StreakFlame';
 import { useCountUp } from '../../components/anim/useCountUp';
 import { Huffling } from '../../components/huffling/Huffling';
+import { Icon } from '../../components/icons/Icon';
 import { GlowMeter } from '../../components/home/GlowMeter';
 import { WeekDots } from '../../components/home/WeekDots';
 import { PrimaryButton } from '../../components/PrimaryButton';
@@ -159,7 +160,9 @@ export function HomeScreen({ navigation, route }: Props) {
             onPress={() => navigation.navigate('Gift')}
             style={({ pressed }) => [styles.gift, pressed && styles.riskPressed]}
           >
-            <Text style={styles.giftEmoji}>🎁</Text>
+            <View style={styles.giftBadge}>
+              <Icon name="gift" size={26} color={colors.onCalmContainer} />
+            </View>
             <View style={styles.giftText}>
               <Text style={styles.riskTitle}>{huffling?.name ?? 'Your Huffling'} found a gift</Text>
               <Text style={styles.riskCopy}>Tap to open — it's yours to wear today.</Text>
@@ -366,8 +369,13 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: space.lg,
   },
-  giftEmoji: {
-    fontSize: 34,
+  giftBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#C6DDD2',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   giftText: {
     flex: 1,

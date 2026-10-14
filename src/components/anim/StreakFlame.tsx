@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
+import { FlameIcon } from '../icons/Icon';
 import { useReducedMotion } from './useReducedMotion';
 
 type Props = {
@@ -8,7 +9,7 @@ type Props = {
 };
 
 /** Flame that breathes while the streak is alive and pops when it grows. */
-export function StreakFlame({ days, size = 30 }: Props) {
+export function StreakFlame({ days, size = 36 }: Props) {
   const reduce = useReducedMotion();
   const pulse = useRef(new Animated.Value(1)).current;
   const pop = useRef(new Animated.Value(1)).current;
@@ -38,16 +39,8 @@ export function StreakFlame({ days, size = 30 }: Props) {
   }, [days, pop, reduce]);
 
   return (
-    <Animated.Text
-      accessibilityElementsHidden
-      importantForAccessibility="no"
-      style={{
-        fontSize: size,
-        opacity: days > 0 ? 1 : 0.35,
-        transform: [{ scale: Animated.multiply(pulse, pop) }],
-      }}
-    >
-      🔥
-    </Animated.Text>
+    <Animated.View style={{ transform: [{ scale: Animated.multiply(pulse, pop) }] }}>
+      <FlameIcon size={size} dim={days <= 0} />
+    </Animated.View>
   );
 }

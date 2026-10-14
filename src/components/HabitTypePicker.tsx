@@ -1,5 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { HabitTypeRecord } from '../data';
+import { Icon } from './icons/Icon';
+import { habitIconName } from './icons/habitIcons';
 import { colors } from '../theme/colors';
 
 type Props = {
@@ -21,7 +23,17 @@ export function HabitTypePicker({ types, selectedId, onSelect }: Props) {
             accessibilityRole="button"
             accessibilityState={{ selected }}
           >
-            <Text style={styles.icon}>{type.icon}</Text>
+            {habitIconName(type.label) ? (
+              <View style={styles.iconWrap}>
+                <Icon
+                  name={habitIconName(type.label) as NonNullable<ReturnType<typeof habitIconName>>}
+                  size={26}
+                  color={selected ? colors.accentDark : colors.ink}
+                />
+              </View>
+            ) : (
+              <Text style={styles.icon}>{type.icon}</Text>
+            )}
             <Text style={[styles.label, selected && styles.labelSelected]}>{type.label}</Text>
           </Pressable>
         );
@@ -54,6 +66,11 @@ const styles = StyleSheet.create({
   icon: {
     fontSize: 22,
     marginBottom: 6,
+  },
+  iconWrap: {
+    marginBottom: 6,
+    height: 26,
+    justifyContent: 'center',
   },
   label: {
     fontSize: 15,

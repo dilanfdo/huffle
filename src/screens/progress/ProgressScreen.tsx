@@ -17,6 +17,7 @@ import {
   useStreakStore,
   useUserStore,
 } from '../../store';
+import { Icon } from '../../components/icons/Icon';
 import { colors } from '../../theme/colors';
 import { radius, space } from '../../theme/layout';
 import { type } from '../../theme/typography';
@@ -70,7 +71,7 @@ export function ProgressScreen({ navigation }: Props) {
         hitSlop={8}
         style={({ pressed }) => [styles.back, pressed && styles.backPressed]}
       >
-        <Text style={styles.backGlyph}>←</Text>
+        <Icon name="chevronLeft" size={26} color={colors.ink} />
       </Pressable>
     </View>
   );
@@ -189,10 +190,6 @@ const styles = StyleSheet.create({
   },
   backPressed: {
     backgroundColor: colors.surfaceContainer,
-  },
-  backGlyph: {
-    fontSize: 26,
-    color: colors.ink,
   },
   scroll: {
     paddingHorizontal: space.xl,

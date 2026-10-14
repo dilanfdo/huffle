@@ -2,6 +2,8 @@ import { SectionList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatHistoryDayLabel, toLocalDateString } from '../../domain';
 import { useSessionStore } from '../../store';
+import { Icon } from '../../components/icons/Icon';
+import { habitIconName } from '../../components/icons/habitIcons';
 import { colors } from '../../theme/colors';
 
 export function HistoryScreen() {
@@ -25,7 +27,17 @@ export function HistoryScreen() {
         )}
         renderItem={({ item }) => (
           <View style={styles.row}>
-            <Text style={styles.icon}>{item.icon}</Text>
+            <View style={styles.iconBadge}>
+              {habitIconName(item.label) ? (
+                <Icon
+                  name={habitIconName(item.label) as NonNullable<ReturnType<typeof habitIconName>>}
+                  size={22}
+                  color={colors.accentDark}
+                />
+              ) : (
+                <Text style={styles.icon}>{item.icon}</Text>
+              )}
+            </View>
             <View style={styles.body}>
               <Text style={styles.label}>{item.label}</Text>
               <Text style={styles.meta}>
@@ -112,6 +124,14 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 22,
+  },
+  iconBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.accentContainer,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   body: {
     flex: 1,
