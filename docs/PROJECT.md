@@ -266,7 +266,7 @@ Principle: the free app is the complete habit loop; money comes from delight and
 
 **Release build**
 - `npx expo prebuild --platform android --clean`, then `cd android && ./gradlew bundleRelease` → `android/app/build/outputs/bundle/release/app-release.aab`.
-- Signing: upload key lives outside the repo at `~/.huffle-signing/` (`huffle-upload.jks` + `keystore.properties`), wired in by `plugins/withReleaseSigning.js`. **Back this folder up** — enrol in Play App Signing so a lost upload key can be reset, but keep a copy regardless.
+- Signing: upload key lives outside the repo at `~/.huffle-signing/` (`huffle-upload-key.jks` + `keystore.properties`; certificate valid until 9999-12-31), wired in by `plugins/withReleaseSigning.js`. **Back this folder up** — enrol in Play App Signing so a lost upload key can be reset, but keep a copy regardless.
 - Bump `expo.android.versionCode` (and `version`) for every Play upload.
 
 **Play Console tasks (need the developer account)**
