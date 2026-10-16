@@ -1,10 +1,14 @@
 # Huffle — Project Documentation
 
-**One-liner:** An iOS app where a virtual creature (a "Huffling") grows as you build a consistent movement habit — built for beginners and inconsistent exercisers, not serious lifters, with zero recurring infrastructure cost.
+**One-liner:** A mobile app where a virtual creature (a "Huffling") grows as you build a consistent movement habit — built for beginners and inconsistent exercisers, not serious lifters, with zero recurring infrastructure cost.
 
-**Status:** Android v1 feature-complete and release-built (core loop, evolution, streak-freeze, journey screen, SVG Huffling). iOS and CloudKit sync are built but not yet verified on a device. See §9 for the Android release checklist and open items.
+**Status (2026-10-16):** Published on Google Play and in review (owner-reported). Current build **1.0.1 (versionCode 5)**; unit tests 83/83 and an on-device suite 76/76 pass. iOS and CloudKit sync are built but not yet verified on a device. See §9 for the release checklist and open items, and `RELEASING.md` for how to ship.
 
 **Platform:** Android first, iOS next. React Native via Expo (SDK 57). Package / bundle id: `app.nexusdigitallabs.huffle`.
+
+**Repos:** the app is its own repo, `dilanfdo/huffle` (like Odova and PDFly). The product page and privacy policy are hosted by the studio website repo `NexusDigitalLabs/nexusdigitallabs.github.io` at `/huffle/` and `/huffle/privacy-policy/`.
+
+**Related docs:** `README.md` (run/test), `RELEASING.md` (build, sign, verify, ship), `PLAY_STORE.md` (listing copy and declarations), `privacy-policy.md` (mirror of the hosted policy), `../store/README.md` (store graphics).
 
 ---
 
@@ -31,7 +35,7 @@ Beginners and inconsistent exercisers who:
 
 - Not a lifting/programming tool (no sets, reps, weight, exercise library)
 - Not a social/competitive fitness app
-- No cross-device sync on Android at launch. CloudKit is Apple-only, so Android data is local (Android Auto Backup restores it with the Google account); sync is an iOS feature (see §4)
+- No Huffle-run backend or accounts. Cross-device sync is per platform and uses the user's own cloud: Google Drive `appDataFolder` on Android (§8b), CloudKit on iOS (§4.4). Android Auto Backup also restores local data with the Google account
 - Not AI-powered (keeps recurring cost at zero)
 
 ---
@@ -61,11 +65,11 @@ Competing habit-pet apps use generic mood states (happy/sad blob, costumed creat
 
 ### 3.3 Evolution stages (v1)
 
-5 stages representing the winded → energized progression (exact names TBD during build, e.g. *Winded → Catching Breath → Steady → Strong → Thriving*). Achieved through posture and color/vibrancy shifts rather than entirely new character art per stage, to control art production cost.
+5 stages representing the winded → energized progression: **Winded → Catching Breath → Steady → Strong → Thriving**, at **0 / 20 / 70 / 160 / 320 XP** (`src/domain/evolution.ts`). Achieved through posture, ear/arm position and color/vibrancy shifts of one character drawn in code with `react-native-svg` (`src/components/huffling/`), rather than new art per stage. Mood (winded / neutral / energized, from how recently the Huffling was fed) changes the face and extras but never the stage.
 
 ### 3.4 Engagement mechanics
 
-- **XP:** flat amount per logged session + a small, capped streak bonus (prevents runaway grinding).
+- **XP:** 10 per session plus a small capped streak bonus (+1 per streak day, max +5). Within one day XP diminishes — full, half, a quarter, then none (`SESSION_XP_MULTIPLIERS`) — so tiny entries cannot be farmed; every session is still logged and celebrated.
 - **Streaks:** consecutive days with at least one session.
 - **Streak-freeze tokens:** earned periodically; let a user skip a day without breaking their streak. Apps with a freeze mechanic show meaningfully longer average streaks than apps without one.
 - **First-session win:** onboarding guarantees the user logs one session and gains XP before ever reaching the home screen. This is the single highest-leverage retention lever identified in research — users who hit an achievement on day one show roughly double the day-30 retention of those who don't.
@@ -78,21 +82,23 @@ Competing habit-pet apps use generic mood states (happy/sad blob, costumed creat
 
 ### 4.1 Guiding constraint
 
-**Zero recurring infrastructure cost.** The only unavoidable expense is Apple's $99/year Developer Program fee. This shapes every architecture decision below.
+**Zero recurring infrastructure cost.** No servers. The unavoidable fees are Google Play's one-time $25 registration and, for iOS later, Apple's $99/year Developer Program. This shapes every architecture decision below.
 
 ### 4.2 Tech stack
 
-| Layer | Choice | Why |
+| Layer | Choice | Status |
 |---|---|---|
-| Framework | Expo (React Native, managed workflow) | Fastest path to a real iOS build; OTA updates via EAS free tier |
-| Local database | expo-sqlite / WatermelonDB | Fast, offline-first, relational |
-| Cross-device sync | `expo-cloudkit` (or `react-native-icloud-kit`) | Wraps Apple CloudKit — free, billed against the *user's* iCloud storage, not ours |
-| State management | Zustand | Lightweight, minimal boilerplate |
-| Notifications | `expo-notifications` (local only, not push) | Fully on-device scheduling, no server |
-| Animations | `react-native-reanimated` + `lottie-react-native` | Handles evolution/breathing animations without a game engine |
-| Auth | None required (optionally Sign in with Apple) | No backend auth server needed |
-| Payments | StoreKit 2 via `react-native-purchases` (RevenueCat) | Free until ~$2.5K/month tracked revenue |
-| Analytics | PostHog free tier / expo-insights | Retention visibility without a paid tool |
+| Framework | Expo SDK 57 (React Native 0.86, TypeScript, dev-client / prebuild) | In use |
+| Local database | `expo-sqlite`, schema v3 (users, hufflings, habit_types, session_logs, streaks, weekly_goals, sync tables, `app_settings`) | In use |
+| State | Zustand stores + pure domain logic in `src/domain/` (unit-tested) | In use |
+| Android backup/sync | Google Sign-In + Drive `appDataFolder` (`src/sync/drive/`) | In use (see §8b) |
+| iOS sync | `expo-cloudkit`, private database, outbox (`src/sync/engine.ts`, loaded only on iOS) | Built, unverified on device |
+| Notifications | `expo-notifications`, local only, planned by a pure planner (`src/notifications/plan.ts`) | In use |
+| Animation | React Native `Animated` (no Reanimated/Lottie), honouring the reduce-motion setting | In use |
+| Art / icons | Huffling and all icons are SVG drawn in code (`react-native-svg`); stroke icon set in `src/components/icons/` | In use |
+| Auth | None. Optional Google sign-in is only used for Drive backup | In use |
+| Payments | RevenueCat over Play Billing (Supporter pack) | Planned (§8c) |
+| Analytics | None. No analytics or crash SDKs | Deliberate |
 
 ### 4.3 Data model
 
@@ -100,7 +106,8 @@ Deliberately designed to be **sync-ready from day one** and **future-proof for n
 
 ```
 User (local only, no account required)
- └─ id, createdAt, streakFreezeTokens, onboardingComplete, weeklyGoal
+ └─ id, createdAt, streakFreezeTokens, onboardingComplete, weeklyGoal,
+    reminderHour, reminderMinute, lastOpenedAt
 
 Huffling
  └─ id, name, evolutionStage, xp, mood, lastFedAt
@@ -117,6 +124,9 @@ Streak
 
 WeeklyGoal
  └─ targetSessions, weekStartDate, sessionsCompletedThisWeek
+
+app_settings (device-local key/value, never synced)
+ └─ selected cosmetic, date the daily gift was opened, supporter flag
 ```
 
 **Design rules:**
@@ -127,28 +137,29 @@ WeeklyGoal
 ### 4.4 CloudKit sync (iOS; built, unverified on device)
 
 - **Private database only** — each user's data lives in their own iCloud; no cross-user data ever touches infrastructure we manage. No privacy/compliance burden.
-- Local SQLite/WatermelonDB remains the source of truth for instant UI reads/writes; the app must work fully offline.
+- Local SQLite (`expo-sqlite`) remains the source of truth for instant UI reads/writes; the app must work fully offline.
 - Every local write also queues a CloudKit push; `CKSyncEngine` (iOS 17+) handles batching, retry, and rate limiting.
 - **Conflict resolution:** append-only tables (`SessionLog`) never conflict — merge by ID. Mutable single-row tables (`Huffling`, `Streak`) use last-write-wins by timestamp; CloudKit surfaces true conflicts via `changeTag` mismatches.
 - **Must handle explicitly:** user not signed into iCloud (app still works fully, local-only, no blocking); first launch on a second device (CloudKit pull populates local DB with a loading state before showing the Huffling).
 
 ### 4.5 Build sequencing note
 
-Although CloudKit is a v1/day-one architectural feature, it's built as a **separate, focused implementation pass** after the core loop is verified working on-device — not bundled into the same AI-assisted coding session as the UI and data layer. This reduces the risk of an agent making unrecoverable mistakes across too many moving parts at once. See the Cursor prompts in `/docs` (or wherever they're stored) for the exact two-phase split.
+Although CloudKit is a v1/day-one architectural feature, it's built as a **separate, focused implementation pass** after the core loop is verified working on-device — not bundled into the same AI-assisted coding session as the UI and data layer. This reduces the risk of an agent making unrecoverable mistakes across too many moving parts at once. The original two-phase prompts are kept in `cursor-prompt-phase1.md` (historical; the code has since moved well beyond them).
 
 ---
 
 ## 5. Build Phases
 
-| Phase | Scope | Est. time |
+| Phase | Scope | Status |
 |---|---|---|
-| **1a** | Core loop: Habit CRUD, local SQLite storage, basic Huffling states, local notifications, onboarding with guaranteed first win | **Done** |
-| **1b** | CloudKit sync layer: entitlements, private database wiring, conflict resolution | **Built, not device-verified** (iOS only) |
-| **2** | Engagement layer: XP, evolution stages, streak-freeze, Huffling art/animation | **Done** — SVG character (drawn in code, `react-native-svg`), evolution celebration, freeze feedback, journey screen. Lottie not used. |
-| **3** | Retention polish: adaptive nudges, weekly summary, haptics, Sign in with Apple, App Store assets | 1–2 weeks |
-| **4** | Monetization + ship: StoreKit paywall, RevenueCat, TestFlight beta, App Store submission | — |
+| **1a** | Core loop: logging, SQLite storage, Huffling states, local notifications, onboarding with guaranteed first win | **Done** |
+| **1b** | CloudKit sync layer (iOS) | **Built, not device-verified** |
+| **2** | Engagement: XP, evolution, streak-freeze, SVG Huffling, evolution celebration, journey screen, daily glow, daily gift, wardrobe | **Done** |
+| **3** | Retention polish | **Partly done:** adaptive nudges, haptics, welcome-back, milestones, in-app privacy link. **Open:** weekly recap, post-Thriving content, Sign in with Apple (iOS) |
+| **Android release** | Drive backup, signed AAB, Play listing | **Published, in review**; see §9 and `RELEASING.md` |
+| **4** | Monetization + iOS ship: RevenueCat Supporter pack, TestFlight, App Store | Not started |
 
-**What's deliberately excluded from v1:** social/leaderboard features (server cost + moderation burden), AI features (keeps cost at zero), Android (CloudKit is Apple-only; cross-platform requires swapping the whole sync layer).
+**What's deliberately excluded from v1:** social/leaderboard features (server cost + moderation burden), AI features (keeps cost at zero). Android now ships first; CloudKit is Apple-only, so Android uses Google Drive for backup (§8b).
 
 ---
 
@@ -212,6 +223,11 @@ The brand does not need to change as this expands — Finch launched narrower th
 | `HabitType` with `category` field, not `WorkoutType` | Single schema decision that enables the entire v2+ roadmap (non-fitness habits) without a rewrite |
 | Duolingo-style reminders and gamified motion, kept warm | Streak pressure and celebration drive return visits, but the anti-guilt promise is the differentiator: nudges are capped at two a day, fade out after a week away, and never shame |
 | Decay-not-punishment pet logic (no stage regression, ever) | Directly addresses the "broken streak → user quits" failure mode common in habit apps |
+| Android backup via the user's Google Drive `appDataFolder`, not a backend | Free, no server, data stays in the user's own account, and it reuses the UUID/`updatedAt` sync design; Huffle cannot see any other Drive file |
+| Huffle is its own repo (`dilanfdo/huffle`); its page and policy live in the studio website repo | Matches Odova and PDFly; keeps app code out of the website repo while the legal pages share the studio domain |
+| Positive moments use green, nudges use soft amber, never coral | Coral/red read as a warning next to words like "fully glowing"; the anti-guilt tone is the product |
+| Test-reminder button is development-only | Verifies notification delivery without shipping a "test" control; loaded behind `__DEV__` so release bundles contain none of it |
+| Icons are one SVG line-icon set, not emoji | Emoji rendered inconsistently and dated across Android vendors |
 | Original creature ("Huffling") instead of a real animal | Avoids likeness/trademark risk; allows the breathing/energy metaphor to be built specifically for this app's mechanic |
 
 ---
@@ -233,13 +249,14 @@ Android has no CloudKit, so cross-device backup uses the user's own Google Drive
 
 - **How it works:** one JSON snapshot (`huffle-sync.json`) is merged with the local database — union by id, newest `updatedAt` wins, weekly goals keyed by week start, sessions never deleted — so devices converge. Triggered on launch/resume, shortly after local writes, and from Settings ("Sync now"). A fresh install can restore from the Welcome screen. If two different Hufflings exist (a device onboarded before connecting), the user picks which to keep.
 - **Code:** `src/sync/drive/` (pure merge in `snapshot.ts`, REST client in `driveApi.ts`, orchestration in `engine.ts`, Google sign-in in `auth.ts`); platform dispatch in `src/sync/provider*.ts`; UI in `src/components/backup/`.
-- **To enable (Google Cloud Console):**
-  1. Create a project, enable the **Google Drive API**.
-  2. OAuth consent screen: External; add scope `.../auth/drive.appdata`; add test users while in Testing.
-  3. Create an OAuth client of type **Web application** — its id is the `webClientId`.
-  4. Create OAuth clients of type **Android** for package `app.nexusdigitallabs.huffle`, one per signing key: the debug keystore, the upload key, and the **Play App Signing** key (shown in Play Console → App integrity).
-  5. Set `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=<web client id>` in `.env.local` (git-ignored; the id is public but this keeps config out of history), then rebuild. If the Gradle JS bundle task reports UP-TO-DATE, run `./gradlew :app:createBundleReleaseJsAndAssets --rerun` so the value is inlined.
-- **Verified:** merge, conflict, and REST behaviour are unit-tested. The live round trip was exercised on an Android emulator with the upload-key build: connect → background sync → uninstall → reinstall → "Restore from Google Drive" brought back the same profile, XP, stage, streak, and session history. A silent restore at boot does not fire after a reinstall (Google sign-in state is lost), so the Welcome-screen button is the restore path.
+- **Google Cloud setup** (project `huffle`; full table of client ids and SHA-1s in `RELEASING.md` §3):
+  1. Enable the **Google Drive API**.
+  2. Consent screen: External, scope `.../auth/drive.appdata` (non-sensitive), authorized domain `nexusdigitallabs.dev`, privacy policy link; **publish to In production**.
+  3. One **Web** client (its id is the `webClientId` the app embeds).
+  4. One **Android** client **per signing key**, package `app.nexusdigitallabs.huffle`: the **Play app signing key** (`EB:5A:37:…:BE:BC`, required for Play installs), the **upload key** (`82:5F:75:…:77:EE`, sideloaded builds) and optionally the debug key. A client with a retired SHA-1 matches nothing.
+  5. Put `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=<web client id>` in `.env.local` (git-ignored) and rebuild. If the Gradle bundle task reports UP-TO-DATE, run `./gradlew :app:createBundleReleaseJsAndAssets --rerun` so the value is inlined.
+- **Gotcha:** until an Android client exists for the key that actually signed the installed app, Google rejects sign-in (`DEVELOPER_ERROR`) and the app shows "Could not connect". Android clients are matched server-side by package + SHA-1, so fixing them needs **no new build**.
+- **Verified:** merge, conflict, and REST behaviour are unit-tested. The live round trip was exercised on a device with a signed build: connect → background sync → uninstall → reinstall → "Restore from Google Drive" brought back the same profile, XP, stage, streak, and session history. A silent restore at boot does not fire after a reinstall (Google sign-in state is lost), so the Welcome-screen button is the restore path. **Still to confirm:** sign-in from a Play-delivered install with a non-test account (the Play app signing client was added 2026-10-16).
 - **iOS later:** the Drive provider could also serve iOS if cross-platform moves matter; the library then needs its URL-scheme config plugin.
 
 ## 8c. Monetization
@@ -260,27 +277,31 @@ Principle: the free app is the complete habit loop; money comes from delight and
 - **Fees and costs:** Play's one-time $25 account fee; Google currently takes 15% of subscriptions and of the first $1M a year of other digital sales (verify current terms); RevenueCat's free tier is sized for small apps (re-check current pricing).
 - **Realistic expectations:** revenue is a function of installs × retention × conversion, and habit apps retain poorly at day 30. Plan on low single-digit paid conversion and treat early revenue as validation, not income, until retention and distribution are proven.
 
-## 9. Android Release Checklist & Open Items
+## 9. Release status & open items (2026-10-16)
 
-**Built and verified on an Android emulator:** onboarding with guaranteed first session, logging, streak/freeze logic, evolution celebration, journey screen, reminders (channel + permission), keyboard behaviour, release build with upload-key signing.
+**Shipped / verified**
+- [x] Signed release builds, version 1.0.1 (versionCode 5): signature, hygiene and contents verified (`RELEASING.md` §6).
+- [x] 83 unit tests and 76 on-device checks pass on a Samsung SM-A166P (Android 16), including soft keyboard, large font, rotation, performance and a 400-event monkey run.
+- [x] Notification delivery verified on a locked phone (2026-10-14); channel, permission and 6 scheduled alarms verified.
+- [x] Privacy policy hosted at `/huffle/privacy-policy/`, linked from Settings and registered in Play Console and on the Google consent screen.
+- [x] Play declarations answered (ads No, advertising ID No, data safety, content rating, target audience, health, account creation); see `PLAY_STORE.md`.
+- [x] Drive backup/restore round trip verified on a device.
+- [x] Dedicated repo pushed (`dilanfdo/huffle`); website pages and widget fix pushed and deployed.
 
-**Release build**
-- `npx expo prebuild --platform android --clean`, then `cd android && ./gradlew bundleRelease` → `android/app/build/outputs/bundle/release/app-release.aab`.
-- Signing: upload key lives outside the repo at `~/.huffle-signing/` (`huffle-upload-key.jks` + `keystore.properties`; certificate valid until 9999-12-31), wired in by `plugins/withReleaseSigning.js`. **Back this folder up** — enrol in Play App Signing so a lost upload key can be reset, but keep a copy regardless.
-- Bump `expo.android.versionCode` (and `version`) for every Play upload.
+**Open, needs a person**
+- [ ] Confirm the Google consent screen reads **In production** and test Drive sign-in from a **Play install** with a non-test account (Play app signing client added 2026-10-16; allow time to propagate).
+- [ ] Refresh the Play screenshots: current ones show the old emoji icons and coral card (`store/README.md`).
+- [ ] Confirm in Play Console which version codes were actually uploaded; tag the released commit.
+- [ ] Observe the 19:00 reminder over several days and after a reboot (Doze / battery optimisation).
+- [ ] Move `~/Desktop/Huffle-Keystore-Backup/` into a password manager plus an offline copy.
 
-**Play Console tasks (need the developer account)**
-- [ ] Create the app (`app.nexusdigitallabs.huffle`), enrol in Play App Signing, upload the AAB to Internal testing.
-- [ ] Store listing: title, short/full description, 512px icon (`assets/icon.png`), feature graphic (1024x500), 2–8 phone screenshots.
-- [ ] Privacy policy URL (required). The app collects nothing and has no network calls; data stays on the device.
-- [ ] Data safety form: no data collected or shared.
-- [ ] Content rating questionnaire, target audience (not directed at children), health-app declarations (this is a wellness tracker, not a medical app).
-- [ ] Closed testing with the required tester count/period before requesting production (applies to new personal accounts).
-
-**Product open items**
-- [ ] Run the notification schedule on a physical device over several days (Doze / reboot behaviour).
-- [ ] Verify on a physical device: soft keyboard, large font sizes, small screens.
-- [ ] Brand: reserve the name in App Store Connect / Play, register `huffle.app`, trademark search, fallback social handles.
-- [ ] iOS: dev build, register the `iCloud.app.nexusdigitallabs.huffle` container, verify CloudKit push/pull/restore on two devices.
-- [ ] Phase 3: weekly summary, adaptive nudges, Sign in with Apple (iOS), store assets.
-- [ ] Phase 4: RevenueCat paywall, analytics, TestFlight.
+**Roadmap candidates (rough effort)**
+| Item | Effort | Notes |
+|---|---|---|
+| Gentle mode (hides streak banner and evening streak nudge, neutral reminder copy) | Small, ~½ day | One device-local setting; planner + Home + voice changes |
+| Log a forgotten session (Today / Yesterday) | Medium, ~1–2 days | UI is easy; streak, freeze-token, XP-cap and weekly-goal maths must be replayed from dates, so add property tests |
+| Weekly recap | Medium | Sessions by day, goal, kind note |
+| Life after Thriving | Larger | Milestone gifts (10 / 50 / 100 sessions), idle moods |
+| Supporter pack purchase | Medium + Play products | RevenueCat; update the privacy policy and Data safety form first (§8c) |
+| iOS build + CloudKit verification | Large | Needs an Apple Developer account; register the `iCloud.app.nexusdigitallabs.huffle` container; test on two devices |
+| Brand | Small | Reserve the name in App Store Connect, register `huffle.app`, trademark search, fallback handles |
