@@ -140,7 +140,7 @@ for k in window_animation_scale transition_animation_scale animator_duration_sca
 adb -s $D shell settings put system font_scale 1.0
 ```
 
-Last result: **76 / 76** on a Samsung SM-A166P, Android 16 (version 1.0.1 code 5). Version 1.0.2 code 7: 73 pass on the Android 17 emulator against a Drive-disabled build; the only other failure is the emulator jank sample. **Rerun on the Samsung before uploading.** Read the screenshots in the output folder, not
+Last result: **76 / 76** on a Samsung SM-A166P, Android 16 (version 1.0.1 code 5). Version 1.0.2 code 7 (Drive-disabled build, Samsung with 3-button navigation): **73 pass**; the only failures are the 5 Drive checks that cannot pass on that build (T1 restore link, four T6 checks) and T11's rotation check, which failed only because Samsung ignores `settings put user_rotation` (fixed: the harness now uses `wm user-rotation`, and landscape was confirmed by hand). Tabs were tapped with the 3-button bar showing and sit fully above it. Read the screenshots in the output folder, not
 just the pass count: several real bugs (cramped footer, off-screen confirmations, touch targets) were found
 by looking at captures.
 

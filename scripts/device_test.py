@@ -480,8 +480,8 @@ time.sleep(1)
 check("T10 font scale restored to 1.0", out("shell", "settings", "get", "system", "font_scale").strip() in ("1.0", "1"))
 
 # ------------------------------------------------------------------ T11 landscape is supported (no orientation lock)
-adb("shell", "settings", "put", "system", "accelerometer_rotation", "0")
-adb("shell", "settings", "put", "system", "user_rotation", "1")
+# `wm user-rotation` works on Samsung too; `settings put user_rotation` alone is ignored there.
+adb("shell", "wm", "user-rotation", "lock", "1")
 time.sleep(2)
 launch(); time.sleep(4)
 import struct
@@ -500,6 +500,9 @@ for _ in range(5):  # a short window needs a few swipes to reach the end of Home
 time.sleep(1)
 check("T11 log button reachable by scrolling in landscape", find(r"Log (another )?session") is not None)
 shot("18b_rotated_scrolled")
+adb("shell", "wm", "user-rotation", "lock", "0")
+time.sleep(1)
+adb("shell", "wm", "user-rotation", "free")
 adb("shell", "settings", "put", "system", "user_rotation", orig_rot or "0")
 adb("shell", "settings", "put", "system", "accelerometer_rotation", orig_accel or "1")
 time.sleep(1)
