@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Page } from '../../components/Page';
 import * as Haptics from 'expo-haptics';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Confetti } from '../../components/anim/Confetti';
@@ -49,7 +49,7 @@ export function GiftScreen({ navigation }: Props) {
 
   if (!huffling || !revealed.current) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <Page scroll style={styles.safe}>
         <View style={styles.center}>
           <Text style={styles.title}>No gift right now</Text>
           <Text style={styles.body}>Log a session today and {huffling?.name ?? 'your Huffling'} may find one.</Text>
@@ -57,7 +57,7 @@ export function GiftScreen({ navigation }: Props) {
         <View style={styles.footer}>
           <PrimaryButton label="Back" onPress={() => navigation.goBack()} />
         </View>
-      </SafeAreaView>
+      </Page>
     );
   }
 
@@ -83,7 +83,7 @@ export function GiftScreen({ navigation }: Props) {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Page scroll style={styles.safe}>
       <View style={styles.center}>
         {!opened ? (
           <Pressable
@@ -138,7 +138,7 @@ export function GiftScreen({ navigation }: Props) {
       ) : null}
 
       <Confetti burstKey={opened ? 1 : null} count={48} originY={0.35} spread={180} />
-    </SafeAreaView>
+    </Page>
   );
 }
 

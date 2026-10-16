@@ -35,7 +35,8 @@ export default function App() {
             result = await bootstrapStores();
           }
         }
-        await startSync();
+        // Backup sync must never hold up the first screen; it reconciles in the background.
+        void startSync().catch(() => undefined);
         if (result.onboardingComplete) {
           await syncLocalNotifications();
         }

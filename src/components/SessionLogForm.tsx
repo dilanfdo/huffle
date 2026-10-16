@@ -8,7 +8,8 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Page } from './Page';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HabitTypePicker } from './HabitTypePicker';
 import { PrimaryButton } from './PrimaryButton';
 import type { LogSessionInput } from '../store';
@@ -32,6 +33,7 @@ export function SessionLogForm({
   onCancel,
   header,
 }: Props) {
+  const insets = useSafeAreaInsets();
   const habitTypes = useSessionStore((s) => s.habitTypes);
   const loadHabitTypes = useSessionStore((s) => s.loadHabitTypes);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -72,10 +74,11 @@ export function SessionLogForm({
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Page style={styles.safe}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior="padding"
+        keyboardVerticalOffset={insets.top}
       >
         {onCancel ? (
           <Pressable onPress={onCancel} style={styles.cancel} accessibilityRole="button">
@@ -115,7 +118,7 @@ export function SessionLogForm({
           />
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Page>
   );
 }
 

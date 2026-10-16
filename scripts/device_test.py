@@ -186,8 +186,12 @@ adb("logcat", "-c")
 adb("shell", "pm", "grant", PKG, "android.permission.POST_NOTIFICATIONS")  # harmless if not installed yet
 
 # ------------------------------------------------------------------ T0 install + package hygiene
-r = adb("install", "-r", APK, timeout=240)
+adb("uninstall", PKG)
+r = adb("install", APK, timeout=240)
 check("T0 install release APK", "Success" in r.stdout, r.stdout.strip()[-60:] or r.stderr.strip()[-80:])
+# Android Auto Backup restores app data at install time on devices with a Google account; start truly clean.
+adb("shell", "pm", "clear", PKG)
+adb("shell", "pm", "grant", PKG, "android.permission.POST_NOTIFICATIONS")
 dump = out("shell", "dumpsys", "package", PKG)
 EXPECTED = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "app.json")))["expo"]
 EXP_NAME, EXP_CODE = EXPECTED["version"], EXPECTED["android"]["versionCode"]
@@ -475,17 +479,27 @@ adb("shell", "settings", "put", "system", "font_scale", "1.0")
 time.sleep(1)
 check("T10 font scale restored to 1.0", out("shell", "settings", "get", "system", "font_scale").strip() in ("1.0", "1"))
 
-# ------------------------------------------------------------------ T11 orientation stays portrait
+# ------------------------------------------------------------------ T11 landscape is supported (no orientation lock)
 adb("shell", "settings", "put", "system", "accelerometer_rotation", "0")
 adb("shell", "settings", "put", "system", "user_rotation", "1")
 time.sleep(2)
 launch(); time.sleep(4)
-w2, h2 = screen_size()
+import struct
+png = subprocess.run(["adb", "-s", SERIAL, "exec-out", "screencap", "-p"], capture_output=True).stdout
+w2, h2 = struct.unpack(">II", png[16:24])  # PNG IHDR: the real window size, rotation included
 disp = out("shell", "dumpsys", "window", "displays")
 landscape = bool(re.search(r"mCurrentFocus.*", out("shell", "dumpsys", "window"))) and \
     bool(re.search(r"rotation=1|rotation=3", out("shell", "dumpsys", "window", "displays")))
 shot("18_rotated")
-check("T11 app stays usable when device rotates", find(r"day streak|Log (another )?session") is not None)
+check("T11 window is landscape (orientation is not locked)", w2 > h2, f"{w2}x{h2}")
+check("T11 tab bar usable in landscape", all(find(t) is not None for t in (r"^Home", r"History", r"Settings")))
+check("T11 name and mood visible in landscape", find(r"feeling|winded|fed|tired|energized", ) is not None or find(r"Stage \d of 5") is not None)
+for _ in range(5):  # a short window needs a few swipes to reach the end of Home
+    adb("shell", "input", "swipe", str(w2 // 2), str(int(h2 * 0.8)), str(w2 // 2), str(int(h2 * 0.2)), "300")
+    time.sleep(0.5)
+time.sleep(1)
+check("T11 log button reachable by scrolling in landscape", find(r"Log (another )?session") is not None)
+shot("18b_rotated_scrolled")
 adb("shell", "settings", "put", "system", "user_rotation", orig_rot or "0")
 adb("shell", "settings", "put", "system", "accelerometer_rotation", orig_accel or "1")
 time.sleep(1)

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Page } from '../../components/Page';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -16,7 +16,15 @@ import { Icon } from '../../components/icons/Icon';
 import { GlowMeter } from '../../components/home/GlowMeter';
 import { WeekDots } from '../../components/home/WeekDots';
 import { PrimaryButton } from '../../components/PrimaryButton';
-import { hufflingLine, liveStreak, stageProgress, toLocalDateString, weekDays } from '../../domain';
+import {
+  hufflingLine,
+  isInWeekStarting,
+  liveStreak,
+  stageProgress,
+  toLocalDateString,
+  weekDays,
+  weekStartDateString,
+} from '../../domain';
 import {
   useClockStore,
   useCosmetics,
@@ -51,11 +59,18 @@ export function HomeScreen({ navigation, route }: Props) {
 
   const streakDays = streak ? liveStreak(streak, freezeTokens, today) : 0;
   const loggedToday = streak?.lastCompletedDate === today;
-  const target = week?.targetSessions ?? 3;
-  const done = week?.sessionsCompletedThisWeek ?? 0;
+  const userGoal = useUserStore((s) => s.user?.weeklyGoal);
+  const target = userGoal ?? week?.targetSessions ?? 3;
   const progress = huffling ? stageProgress(huffling.xp) : null;
   const xpShown = useCountUp(huffling?.xp ?? 0);
   const streakShown = useCountUp(streakDays);
+
+  // Counted from the sessions themselves: the stored weekly counter can be overwritten by a newer,
+  // emptier copy when two devices sync, but the session list never loses entries.
+  const done = useMemo(() => {
+    const start = weekStartDateString(new Date(`${today}T12:00:00`));
+    return sessions.filter((s) => isInWeekStarting(toLocalDateString(new Date(s.completedAt)), start)).length;
+  }, [sessions, today]);
 
   const days = useMemo(() => {
     const dates = new Set(sessions.map((s) => toLocalDateString(new Date(s.completedAt))));
@@ -102,8 +117,20 @@ export function HomeScreen({ navigation, route }: Props) {
             : `${reaction.name} perked up`
     : '';
 
+  // In landscape on a phone the pinned footer would eat a fifth of the window, so it scrolls with the content.
+  const shortWindow = windowHeight < 480;
+  const footer = (
+    <View style={styles.footer}>
+      <PrimaryButton
+        label={loggedToday ? 'Log another session' : 'Log a session'}
+        onPress={() => navigation.navigate('LogSession')}
+      />
+      <Text style={styles.hint}>Any movement counts. No sets, reps, or guilt.</Text>
+    </View>
+  );
+
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <Page style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
         {huffling ? (
           <View style={styles.hero}>
@@ -253,18 +280,13 @@ export function HomeScreen({ navigation, route }: Props) {
           </Text>
         </View>
 
+        {shortWindow ? footer : null}
       </ScrollView>
 
-      <View style={styles.footer}>
-        <PrimaryButton
-          label={loggedToday ? 'Log another session' : 'Log a session'}
-          onPress={() => navigation.navigate('LogSession')}
-        />
-        <Text style={styles.hint}>Any movement counts. No sets, reps, or guilt.</Text>
-      </View>
+      {shortWindow ? null : footer}
 
       <Confetti burstKey={burst} count={celebrate ? 56 : 26} originY={0.3} spread={celebrate ? 200 : 150} />
-    </SafeAreaView>
+    </Page>
   );
 }
 

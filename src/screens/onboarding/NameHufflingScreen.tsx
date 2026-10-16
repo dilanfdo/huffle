@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Page } from '../../components/Page';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { createLocalProfile } from '../../store';
@@ -16,6 +18,7 @@ import type { OnboardingStackParamList } from '../../root/navigation/types';
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'NameHuffling'>;
 
 export function NameHufflingScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,12 +41,13 @@ export function NameHufflingScreen({ navigation }: Props) {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Page style={styles.safe}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior="padding"
+        keyboardVerticalOffset={insets.top}
       >
-        <View style={styles.body}>
+        <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Name your Huffling</Text>
           <Text style={styles.copy}>
             They’re a little winded to start — same as a lot of us. A name makes them yours.
@@ -61,7 +65,7 @@ export function NameHufflingScreen({ navigation }: Props) {
             onSubmitEditing={() => void onContinue()}
           />
           {error ? <Text style={styles.error}>{error}</Text> : null}
-        </View>
+        </ScrollView>
         <View style={styles.footer}>
           <PrimaryButton
             label={busy ? 'Saving…' : 'That’s their name'}
@@ -70,7 +74,7 @@ export function NameHufflingScreen({ navigation }: Props) {
           />
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Page>
   );
 }
 
@@ -83,7 +87,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   body: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
     gap: 12,

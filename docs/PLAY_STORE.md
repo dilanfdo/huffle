@@ -104,6 +104,14 @@ A fresh look for your daily check-in.
 
 The notes for each release are saved next to its files in `~/Desktop/Huffle-Releases/<version>-code<N>/release-notes.txt`.
 
+## Play Console recommendations (pre-launch report on 1.0.1 code 5) and fixes in 1.0.2 code 7
+
+| Finding | Fix |
+|---|---|
+| DEX code optimization below threshold (obfuscation 2%; fix by Feb 2027) | `expo-build-properties` in `app.json`: `enableMinifyInReleaseBuilds` and `enableShrinkResourcesInReleaseBuilds` (R8). The AAB now carries `proguard.map`; verified Google sign-in, Drive sync and the full device suite on the minified build |
+| Remove resizability and orientation restrictions (large screens) | `orientation` changed from `portrait` to `default`; manifest now `screenOrientation="unspecified"`. Screens use `src/components/Page.tsx` (max content width 640dp, left/right safe-area insets, scroll on short windows); Home's footer scrolls with content on windows shorter than 480dp |
+| Edge-to-edge may not display for all users; deprecated edge-to-edge APIs | The app already runs edge-to-edge (`edgeToEdgeEnabled=true`, safe-area insets on every screen). The deprecated `Window.setStatusBarColor`/`setNavigationBarColor` references are inside React Native core, Material Components and react-native-screens, not Huffle code; Expo patch updates were applied (`npx expo install --fix`). Expect the warning to clear as those libraries move; re-check the next pre-launch report |
+
 ## Issues met and how they were resolved
 
 | Issue | Resolution |

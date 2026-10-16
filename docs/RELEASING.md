@@ -1,7 +1,7 @@
 # Releasing Huffle
 
 Runbook for building, verifying and shipping an Android release. Last verified end to end on
-**2026-10-16** with version **1.0.2 (versionCode 6)**.
+**2026-10-16** with version **1.0.2 (versionCode 7)**.
 
 ## 1. Where things live
 
@@ -126,10 +126,10 @@ ad/analytics/attribution SDKs.
 
 1. **Typecheck and unit tests:** `npx tsc --noEmit` and `npm test` (89 tests: streak/XP/evolution/mood maths,
    notification planner, Drive merge + preferences + REST client, cosmetics, links).
-2. **On-device suite:** `scripts/device_test.py`, 76 checks in sections T0–T14 (clean install, version from
+2. **On-device suite:** `scripts/device_test.py`, 78 checks in sections T0–T14 (clean install, version from
    `app.json`, cold start, onboarding, persistence across kill, logging/glow cap/evolution, gift,
    wardrobe, journey, history, settings, privacy link opens the browser and returns, notification
-   channel/permission/alarms, soft keyboard, 48dp touch targets, large font, rotation, performance,
+   channel/permission/alarms, soft keyboard, 48dp touch targets, large font, landscape (not locked), performance,
    a 400-event monkey run, crash scan).
 
 ```bash
@@ -140,11 +140,18 @@ for k in window_animation_scale transition_animation_scale animator_duration_sca
 adb -s $D shell settings put system font_scale 1.0
 ```
 
-Last result: **76 / 76** on a Samsung SM-A166P, Android 16. Read the screenshots in the output folder, not
+Last result: **76 / 76** on a Samsung SM-A166P, Android 16 (version 1.0.1 code 5). Version 1.0.2 code 7: 73 pass on the Android 17 emulator against a Drive-disabled build; the only other failure is the emulator jank sample. **Rerun on the Samsung before uploading.** Read the screenshots in the output folder, not
 just the pass count: several real bugs (cramped footer, off-screen confirmations, touch targets) were found
 by looking at captures.
 
 Harness gotchas:
+- **On a device or emulator signed in to a Google account the suite must run against a Drive-disabled build**,
+  otherwise Huffle silently restores from and syncs to that account's real Huffle backup (test data ends up in
+  Drive). Build one with `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID= ./gradlew :app:createBundleReleaseJsAndAssets --rerun assembleRelease`;
+  the T1 "Restore from Google Drive" and four T6 Drive checks then fail by design (they are covered by the
+  manual sign-in run in section 3a on the real build). Rebuild the real release afterwards.
+- Android Auto Backup restores app data at install time, so the harness runs `pm clear` after installing.
+- The emulator renders in software: T12 jank samples only 4-7 frames and reads 60-100%. Judge jank on a phone.
 - uiautomator never goes idle while looping animations run, so set the animation scales to 0 first and
   **restore them to 1.0 afterwards** (the harness restores the font scale itself).
 - Samsung reports `mCurrentFocus=null`; use `topResumedActivity` to know whether the app is in front.
@@ -181,14 +188,15 @@ Copy, declarations and the answers given are in `docs/PLAY_STORE.md`. Release st
 
 - Install from Play (not sideloaded) and test Settings → Connect Google Drive with a non-test account.
 - Confirm Android vitals and pre-launch reports in Play Console.
-- Tag the commit and push: `git tag v1.0.2-code6 && git push origin main --tags`.
+- Tag the commit and push: `git tag v1.0.2-code7 && git push origin main --tags`.
 
 ## 11. Release history
 
 | Version (code) | State | Notes |
 |---|---|---|
-| 1.0.2 (**6**) | **Current candidate** | Drive backup now includes wardrobe choice, gift state and supporter flag; restore reschedules reminders; an older app can no longer overwrite a newer-format backup. Verified on an emulator with real Google sign-in (see §3a). Files in `~/Desktop/Huffle-Releases/1.0.2-code6/` |
-| 1.0.1 (5) | Previous candidate | In-app privacy policy link (Settings + next to Connect Google Drive); calmer green/amber colours replace coral on positive moments; modern SVG line icons; dev-only test reminder |
+| 1.0.2 (**7**) | **Current candidate** | Play Console recommendations fixed (R8 minify + resource shrinking, no orientation lock, landscape/tablet layouts, dependency patch updates); Drive backup now includes wardrobe choice, gift state and supporter flag; restore reschedules reminders; weekly session count derived from sessions; startup no longer waits for Drive. Verified on an emulator with real Google sign-in (§3a). Files in `~/Desktop/Huffle-Releases/1.0.2-code7/` |
+| 1.0.2 (6) | Superseded (never uploaded) | Drive preferences backup only |
+| 1.0.1 (5) | Uploaded to Play | Play pre-launch report raised the four items in `docs/PLAY_STORE.md` ("Play Console recommendations") | In-app privacy policy link (Settings + next to Connect Google Drive); calmer green/amber colours replace coral on positive moments; modern SVG line icons; dev-only test reminder |
 | 1.0.1 (4) | Superseded | Test reminder made dev-only |
 | 1.0.1 (3) | Superseded | Had a user-visible "Send a test reminder" button |
 | 1.0.1 (2) | Superseded | Icon set and UI polish |

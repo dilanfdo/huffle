@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Page } from '../../components/Page';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MOOD_LABEL } from '../../components/huffling/Huffling';
 import {
@@ -78,13 +78,13 @@ export function ProgressScreen({ navigation }: Props) {
 
   if (!huffling || !streak) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <Page scroll style={styles.safe}>
         {topBar}
         <View style={styles.empty}>
           <Text style={styles.emptyTitle}>Your Huffling isn’t here yet</Text>
           <Text style={styles.emptyCopy}>Finish onboarding and their journey will show up here.</Text>
         </View>
-      </SafeAreaView>
+      </Page>
     );
   }
 
@@ -96,7 +96,7 @@ export function ProgressScreen({ navigation }: Props) {
   const percent = Math.round(progress.ratio * 100);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Page style={styles.safe}>
       {topBar}
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text accessibilityRole="header" style={styles.title}>
@@ -168,7 +168,7 @@ export function ProgressScreen({ navigation }: Props) {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </Page>
   );
 }
 

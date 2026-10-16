@@ -1,5 +1,5 @@
 import { SectionList, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Page } from '../../components/Page';
 import { formatHistoryDayLabel, toLocalDateString } from '../../domain';
 import { useSessionStore } from '../../store';
 import { Icon } from '../../components/icons/Icon';
@@ -13,7 +13,7 @@ export function HistoryScreen() {
   const sections = groupByDay(sessions, habitTypes);
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <Page style={styles.safe} edges={['top']}>
       <Text style={styles.title}>History</Text>
       <SectionList
         sections={sections}
@@ -49,7 +49,7 @@ export function HistoryScreen() {
           </View>
         )}
       />
-    </SafeAreaView>
+    </Page>
   );
 }
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Page } from '../../components/Page';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HufflingCharacter } from '../../components/huffling/HufflingCharacter';
 import { COSMETICS, cosmeticLabel, unlockHint, type CosmeticId } from '../../domain';
@@ -56,7 +56,7 @@ export function WardrobeScreen({ navigation }: Props) {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Page style={styles.safe}>
       <View style={styles.topBar}>
         <Pressable
           accessibilityRole="button"
@@ -141,7 +141,7 @@ export function WardrobeScreen({ navigation }: Props) {
           </Pressable>
         ) : null}
       </ScrollView>
-    </SafeAreaView>
+    </Page>
   );
 }
 

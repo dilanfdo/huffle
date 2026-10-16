@@ -2,7 +2,7 @@
 
 **One-liner:** A mobile app where a virtual creature (a "Huffling") grows as you build a consistent movement habit — built for beginners and inconsistent exercisers, not serious lifters, with zero recurring infrastructure cost.
 
-**Status (2026-10-16):** Published on Google Play and in review (owner-reported). Current build **1.0.2 (versionCode 6)**; unit tests 89/89 pass, the on-device suite passed 76/76 on 1.0.1 (5), and Drive sign-in/restore was re-verified on 1.0.2 (6) on an emulator. iOS and CloudKit sync are built but not yet verified on a device. See §9 for the release checklist and open items, and `RELEASING.md` for how to ship.
+**Status (2026-10-16):** Published on Google Play and in review (owner-reported). Current build **1.0.2 (versionCode 7)**; unit tests 89/89 pass, the on-device suite passed 76/76 on 1.0.1 (5) and 73 checks pass on 1.0.2 (7) on an emulator (Drive checks verified separately with real sign-in). iOS and CloudKit sync are built but not yet verified on a device. See §9 for the release checklist and open items, and `RELEASING.md` for how to ship.
 
 **Platform:** Android first, iOS next. React Native via Expo (SDK 57). Package / bundle id: `app.nexusdigitallabs.huffle`.
 
@@ -280,8 +280,8 @@ Principle: the free app is the complete habit loop; money comes from delight and
 ## 9. Release status & open items (2026-10-16)
 
 **Shipped / verified**
-- [x] Signed release builds, version 1.0.2 (versionCode 6): signature, hygiene and contents verified (`RELEASING.md` §6).
-- [x] 89 unit tests pass, and 76 on-device checks passed (on 1.0.1 code 5; rerun `scripts/device_test.py` on the Samsung before uploading code 6) on a Samsung SM-A166P (Android 16), including soft keyboard, large font, rotation, performance and a 400-event monkey run.
+- [x] Signed release builds, version 1.0.2 (versionCode 7), R8-minified, orientation unlocked: signature, hygiene and contents verified (`RELEASING.md` §6).
+- [x] 89 unit tests pass, and 76 on-device checks passed (on 1.0.1 code 5; rerun `scripts/device_test.py` on the Samsung before uploading code 7) on a Samsung SM-A166P (Android 16), including soft keyboard, large font, rotation, performance and a 400-event monkey run.
 - [x] Notification delivery verified on a locked phone (2026-10-14); channel, permission and 6 scheduled alarms verified.
 - [x] Privacy policy hosted at `/huffle/privacy-policy/`, linked from Settings and registered in Play Console and on the Google consent screen.
 - [x] Play declarations answered (ads No, advertising ID No, data safety, content rating, target audience, health, account creation); see `PLAY_STORE.md`.

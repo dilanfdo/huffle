@@ -11,7 +11,8 @@ import {
   View,
 } from 'react-native';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Page } from '../../components/Page';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CloudBackupSection } from '../../components/backup/CloudBackupSection';
 import { PrivacyPolicyLink } from '../../components/PrivacyPolicyLink';
 import { syncLocalNotifications } from '../../notifications/schedule';
@@ -25,6 +26,7 @@ const DevTestReminder: typeof import('./DevTestReminder').DevTestReminder | null
   : null;
 
 export function SettingsScreen() {
+  const insets = useSafeAreaInsets();
   const user = useUserStore((s) => s.user);
   const huffling = useHufflingStore((s) => s.huffling);
   const availability = useSyncStore((s) => s.availability);
@@ -71,10 +73,11 @@ export function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <Page style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior="padding"
+        keyboardVerticalOffset={insets.top}
       >
         <ScrollView contentContainerStyle={styles.scroll}>
           <Text style={styles.title}>Settings</Text>
@@ -162,7 +165,7 @@ export function SettingsScreen() {
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Page>
   );
 }
 

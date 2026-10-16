@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Page } from '../../components/Page';
 import * as Haptics from 'expo-haptics';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Confetti } from '../../components/anim/Confetti';
@@ -77,7 +77,7 @@ export function EvolutionScreen({ navigation, route }: Props) {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Page scroll style={styles.safe}>
       <View style={styles.center}>
         <View style={styles.stage}>
           <Animated.View
@@ -114,7 +114,7 @@ export function EvolutionScreen({ navigation, route }: Props) {
         <PrimaryButton label="Keep going" onPress={onContinue} disabled={!done} />
       </View>
       <Confetti burstKey={done ? 1 : null} count={64} originY={0.38} spread={190} />
-    </SafeAreaView>
+    </Page>
   );
 }
 

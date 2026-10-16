@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Page } from '../../components/Page';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Huffling } from '../../components/huffling/Huffling';
 import { RestoreFromDrive } from '../../components/backup/RestoreFromDrive';
@@ -11,7 +11,7 @@ type Props = NativeStackScreenProps<OnboardingStackParamList, 'Welcome'>;
 
 export function WelcomeScreen({ navigation }: Props) {
   return (
-    <SafeAreaView style={styles.safe}>
+    <Page scroll style={styles.safe}>
       <View style={styles.body}>
         <Huffling stage="winded" mood="winded" />
         <Text style={styles.title}>Meet your Huffling</Text>
@@ -30,7 +30,7 @@ export function WelcomeScreen({ navigation }: Props) {
           }}
         />
       </View>
-    </SafeAreaView>
+    </Page>
   );
 }
 
