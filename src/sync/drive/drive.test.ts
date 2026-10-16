@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createDriveApi, DriveError, SNAPSHOT_FILE_NAME } from './driveApi';
 import {
   hasProfile,
+  mergePreferences,
   mergeSnapshots,
   parseSnapshot,
   profilesConflict,
@@ -185,6 +186,62 @@ describe('createDriveApi', () => {
 
   it('throws a DriveError on other failures', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => json({}, 403)));
+    await expect(createDriveApi(async () => 'tok').load()).rejects.toBeInstanceOf(DriveError);
+  });
+});
+
+describe('preferences', () => {
+  const prefs = (selectedCosmetic: string | null, giftOpenedDate: string | null, updatedAt: string, supporter = false) => ({
+    selectedCosmetic, giftOpenedDate, supporter, updatedAt,
+  });
+
+  it('takes the newest selection but never moves the gift date backwards', () => {
+    const merged = mergePreferences(prefs('crown', '2026-09-03', at(2)), prefs('scarf', '2026-09-05', at(4)));
+    expect(merged).toEqual(prefs('scarf', '2026-09-05', at(4)));
+    const keepsLocal = mergePreferences(prefs('crown', '2026-09-08', at(6)), prefs('scarf', '2026-09-05', at(4)));
+    expect(keepsLocal).toEqual(prefs('crown', '2026-09-08', at(6)));
+  });
+
+  it('keeps the supporter flag once either side has it, and an explicit "none" selection', () => {
+    const merged = mergePreferences(prefs(null, null, at(5)), prefs('scarf', null, at(3), true));
+    expect(merged?.supporter).toBe(true);
+    expect(merged?.selectedCosmetic).toBeNull();
+  });
+
+  it('returns whichever side exists', () => {
+    expect(mergePreferences(null, null)).toBeNull();
+    expect(mergePreferences(prefs('a', null, at(1)), null)?.selectedCosmetic).toBe('a');
+    expect(mergePreferences(null, prefs('b', null, at(1)))?.selectedCosmetic).toBe('b');
+  });
+
+  it('flows through the snapshot merge: incoming for this device, stale for the cloud', () => {
+    const remoteOnly = mergeSnapshots(snap(), { ...snap(), preferences: prefs('scarf', null, at(4)) }, at(9));
+    expect(remoteOnly.incomingPreferences?.selectedCosmetic).toBe('scarf');
+    expect(remoteOnly.remoteStale).toBe(false);
+
+    const localOnly = mergeSnapshots({ ...snap(), preferences: prefs('crown', null, at(4)) }, snap(), at(9));
+    expect(localOnly.incomingPreferences).toBeNull();
+    expect(localOnly.remoteStale).toBe(true);
+
+    const same = { ...snap(), preferences: prefs('crown', null, at(4)) };
+    const settled = mergeSnapshots(same, same, at(9));
+    expect(settled.incomingPreferences).toBeNull();
+    expect(settled.remoteStale).toBe(false);
+  });
+
+  it('parses preferences from a stored backup and tolerates old backups without them', () => {
+    const parsed = parseSnapshot({ version: 1, savedAt: 'x', records: {}, preferences: { selectedCosmetic: 'crown', supporter: true, updatedAt: at(1) } });
+    expect(parsed?.preferences).toEqual(prefs('crown', null, at(1), true));
+    expect(parseSnapshot({ version: 1, savedAt: 'x', records: {} })?.preferences).toBeNull();
+  });
+});
+
+describe('newer backups', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('refuses to read, and so never overwrites, a backup from a newer app version', async () => {
+    const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(json({ files: [{ id: 'f1' }] })).mockResolvedValueOnce(json({ version: 2, records: {} })));
     await expect(createDriveApi(async () => 'tok').load()).rejects.toBeInstanceOf(DriveError);
   });
 });

@@ -2,7 +2,7 @@
 
 **One-liner:** A mobile app where a virtual creature (a "Huffling") grows as you build a consistent movement habit — built for beginners and inconsistent exercisers, not serious lifters, with zero recurring infrastructure cost.
 
-**Status (2026-10-16):** Published on Google Play and in review (owner-reported). Current build **1.0.1 (versionCode 5)**; unit tests 83/83 and an on-device suite 76/76 pass. iOS and CloudKit sync are built but not yet verified on a device. See §9 for the release checklist and open items, and `RELEASING.md` for how to ship.
+**Status (2026-10-16):** Published on Google Play and in review (owner-reported). Current build **1.0.2 (versionCode 6)**; unit tests 89/89 pass, the on-device suite passed 76/76 on 1.0.1 (5), and Drive sign-in/restore was re-verified on 1.0.2 (6) on an emulator. iOS and CloudKit sync are built but not yet verified on a device. See §9 for the release checklist and open items, and `RELEASING.md` for how to ship.
 
 **Platform:** Android first, iOS next. React Native via Expo (SDK 57). Package / bundle id: `app.nexusdigitallabs.huffle`.
 
@@ -247,7 +247,7 @@ Goal: a Duolingo-like reason to come back tomorrow, without ever blocking the re
 
 Android has no CloudKit, so cross-device backup uses the user's own Google Drive hidden app folder (`drive.appdata` scope — Huffle cannot see any other Drive file). It stays hidden until a Google client id is supplied, so builds without one behave exactly as before.
 
-- **How it works:** one JSON snapshot (`huffle-sync.json`) is merged with the local database — union by id, newest `updatedAt` wins, weekly goals keyed by week start, sessions never deleted — so devices converge. Triggered on launch/resume, shortly after local writes, and from Settings ("Sync now"). A fresh install can restore from the Welcome screen. If two different Hufflings exist (a device onboarded before connecting), the user picks which to keep.
+- **How it works:** one JSON snapshot (`huffle-sync.json`) is merged with the local database — union by id, newest `updatedAt` wins, weekly goals keyed by week start, sessions never deleted — so devices converge. The snapshot also carries device preferences (selected wardrobe item, last gift-opened date, supporter flag): newest edit wins for the selection, the gift date only moves forward, supporter is sticky. Older backups without them still load. A backup written by a newer snapshot version is never overwritten. Triggered on launch/resume, shortly after local writes, and from Settings ("Sync now"). A fresh install can restore from the Welcome screen. If two different Hufflings exist (a device onboarded before connecting), the user picks which to keep.
 - **Code:** `src/sync/drive/` (pure merge in `snapshot.ts`, REST client in `driveApi.ts`, orchestration in `engine.ts`, Google sign-in in `auth.ts`); platform dispatch in `src/sync/provider*.ts`; UI in `src/components/backup/`.
 - **Google Cloud setup** (project `huffle`; full table of client ids and SHA-1s in `RELEASING.md` §3):
   1. Enable the **Google Drive API**.
@@ -280,8 +280,8 @@ Principle: the free app is the complete habit loop; money comes from delight and
 ## 9. Release status & open items (2026-10-16)
 
 **Shipped / verified**
-- [x] Signed release builds, version 1.0.1 (versionCode 5): signature, hygiene and contents verified (`RELEASING.md` §6).
-- [x] 83 unit tests and 76 on-device checks pass on a Samsung SM-A166P (Android 16), including soft keyboard, large font, rotation, performance and a 400-event monkey run.
+- [x] Signed release builds, version 1.0.2 (versionCode 6): signature, hygiene and contents verified (`RELEASING.md` §6).
+- [x] 89 unit tests pass, and 76 on-device checks passed (on 1.0.1 code 5; rerun `scripts/device_test.py` on the Samsung before uploading code 6) on a Samsung SM-A166P (Android 16), including soft keyboard, large font, rotation, performance and a 400-event monkey run.
 - [x] Notification delivery verified on a locked phone (2026-10-14); channel, permission and 6 scheduled alarms verified.
 - [x] Privacy policy hosted at `/huffle/privacy-policy/`, linked from Settings and registered in Play Console and on the Google consent screen.
 - [x] Play declarations answered (ads No, advertising ID No, data safety, content rating, target audience, health, account creation); see `PLAY_STORE.md`.

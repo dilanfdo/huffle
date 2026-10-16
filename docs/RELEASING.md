@@ -1,7 +1,7 @@
 # Releasing Huffle
 
 Runbook for building, verifying and shipping an Android release. Last verified end to end on
-**2026-10-16** with version **1.0.1 (versionCode 5)**.
+**2026-10-16** with version **1.0.2 (versionCode 6)**.
 
 ## 1. Where things live
 
@@ -63,6 +63,17 @@ Symptoms when it is wrong:
 **Status to re-verify after any change:** the Play app signing client was created on 2026-10-16. Confirm
 the consent screen reads **In production** and test a Play install with an account that is not a test user.
 
+### 3a. Drive backup: what is verified
+
+Verified on 2026-10-16 with the signed 1.0.2 (6) release APK (upload key) on an Android emulator with Google
+Play services and a real Google account: account picker opens (no `DEVELOPER_ERROR`), sign-in succeeds,
+"Restore from Google Drive" on a fresh install brings back the profile, XP, stage, streak, week, wardrobe
+choice and gift state; Settings reports "Last synced just now". Run it again after any change to the
+clients: uninstall, install the release APK, Welcome screen -> Restore from Google Drive.
+
+**Not verifiable from this repo:** a Play-delivered install (Play app signing client), and a non-test
+Google account (consent screen must read In production). Check both after the release is live.
+
 ## 4. Version rules
 
 - `app.json` → `expo.version` (user-visible) and `expo.android.versionCode` (integer).
@@ -113,8 +124,8 @@ ad/analytics/attribution SDKs.
 
 ## 7. Test gates
 
-1. **Typecheck and unit tests:** `npx tsc --noEmit` and `npm test` (83 tests: streak/XP/evolution/mood maths,
-   notification planner, Drive merge + REST client, cosmetics, links).
+1. **Typecheck and unit tests:** `npx tsc --noEmit` and `npm test` (89 tests: streak/XP/evolution/mood maths,
+   notification planner, Drive merge + preferences + REST client, cosmetics, links).
 2. **On-device suite:** `scripts/device_test.py`, 76 checks in sections T0–T14 (clean install, version from
    `app.json`, cold start, onboarding, persistence across kill, logging/glow cap/evolution, gift,
    wardrobe, journey, history, settings, privacy link opens the browser and returns, notification
@@ -170,13 +181,14 @@ Copy, declarations and the answers given are in `docs/PLAY_STORE.md`. Release st
 
 - Install from Play (not sideloaded) and test Settings → Connect Google Drive with a non-test account.
 - Confirm Android vitals and pre-launch reports in Play Console.
-- Tag the commit and push: `git tag v1.0.1-code5 && git push origin main --tags`.
+- Tag the commit and push: `git tag v1.0.2-code6 && git push origin main --tags`.
 
 ## 11. Release history
 
 | Version (code) | State | Notes |
 |---|---|---|
-| 1.0.1 (**5**) | **Current candidate** | In-app privacy policy link (Settings + next to Connect Google Drive); calmer green/amber colours replace coral on positive moments; modern SVG line icons; dev-only test reminder |
+| 1.0.2 (**6**) | **Current candidate** | Drive backup now includes wardrobe choice, gift state and supporter flag; restore reschedules reminders; an older app can no longer overwrite a newer-format backup. Verified on an emulator with real Google sign-in (see §3a). Files in `~/Desktop/Huffle-Releases/1.0.2-code6/` |
+| 1.0.1 (5) | Previous candidate | In-app privacy policy link (Settings + next to Connect Google Drive); calmer green/amber colours replace coral on positive moments; modern SVG line icons; dev-only test reminder |
 | 1.0.1 (4) | Superseded | Test reminder made dev-only |
 | 1.0.1 (3) | Superseded | Had a user-visible "Send a test reminder" button |
 | 1.0.1 (2) | Superseded | Icon set and UI polish |

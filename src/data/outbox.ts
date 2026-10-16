@@ -28,6 +28,11 @@ export function onOutboxChange(listener: OutboxListener): () => void {
   return () => listeners.delete(listener);
 }
 
+/** For changes that are not outbox records (device preferences) but should still reach the backup. */
+export function notifyLocalChange(): void {
+  listeners.forEach((listener) => listener());
+}
+
 export async function enqueueOutbox(recordType: SyncRecordType, recordId: string): Promise<void> {
   if (Platform.OS === 'web') {
     return;

@@ -1,4 +1,4 @@
-import { parseSnapshot, type Snapshot } from './snapshot';
+import { parseSnapshot, SNAPSHOT_VERSION, type Snapshot } from './snapshot';
 
 export const SNAPSHOT_FILE_NAME = 'huffle-sync.json';
 
@@ -54,7 +54,13 @@ export function createDriveApi(getToken: TokenProvider) {
 
   async function download(id: string): Promise<Snapshot | null> {
     const response = await request(`${FILES}/${id}?alt=media`);
-    return parseSnapshot(await response.json());
+    const body: unknown = await response.json();
+    // A backup from a newer app version must never be overwritten by an older one.
+    const version = (body as { version?: unknown } | null)?.version;
+    if (typeof version === 'number' && version > SNAPSHOT_VERSION) {
+      throw new DriveError(409, 'Backup was made by a newer version of Huffle');
+    }
+    return parseSnapshot(body);
   }
 
   async function create(content: string): Promise<void> {

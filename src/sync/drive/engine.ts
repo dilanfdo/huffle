@@ -3,6 +3,7 @@ import {
   habitTypeRepository,
   hufflingRepository,
   nowIso,
+  preferencesRepository,
   runInTransaction,
   sessionLogRepository,
   streakRepository,
@@ -39,13 +40,14 @@ const api = createDriveApi(getAccessToken);
 const ui = () => useDriveStore.getState();
 
 async function collectLocal(): Promise<Snapshot> {
-  const [user, huffling, streak, habitTypes, sessions, weeks] = await Promise.all([
+  const [user, huffling, streak, habitTypes, sessions, weeks, preferences] = await Promise.all([
     userRepository.getUser(),
     hufflingRepository.getHuffling(),
     streakRepository.getStreak(),
     habitTypeRepository.listHabitTypes(),
     sessionLogRepository.listSessionLogs(),
     weeklyGoalRepository.listWeeklyGoalsUpdatedSince(''),
+    preferencesRepository.getPreferences(),
   ]);
   return {
     version: SNAPSHOT_VERSION,
@@ -58,6 +60,7 @@ async function collectLocal(): Promise<Snapshot> {
       Streak: streak ? [streak] : [],
       WeeklyGoal: weeks,
     },
+    preferences,
   };
 }
 
@@ -72,7 +75,21 @@ async function applyAll(items: DomainRecord[]): Promise<void> {
 async function adopt(remote: Snapshot): Promise<void> {
   await clearUserData();
   await applyAll(toDomainRecords(remote));
+  if (remote.preferences) {
+    await preferencesRepository.applyPreferences(remote.preferences);
+  }
   await bootstrapStores();
+  await rescheduleReminders();
+}
+
+/** A restored profile brings its own reminder time, so the local schedule must follow it. */
+async function rescheduleReminders(): Promise<void> {
+  try {
+    const { syncLocalNotifications } = await import('../../notifications/schedule');
+    await syncLocalNotifications();
+  } catch {
+    // Reminders are best effort; the next app start reschedules them.
+  }
 }
 
 function markSynced(): SyncOutcome {
@@ -108,10 +125,14 @@ async function runOnce(resolve?: Resolution): Promise<SyncOutcome> {
       return { status: 'conflict' };
     }
 
-    const { merged, incoming, remoteStale } = mergeSnapshots(local, remote, nowIso());
-    if (incoming.length > 0) {
+    const { merged, incoming, incomingPreferences, remoteStale } = mergeSnapshots(local, remote, nowIso());
+    if (incoming.length > 0 || incomingPreferences) {
       await applyAll(incoming);
+      if (incomingPreferences) {
+        await preferencesRepository.applyPreferences(incomingPreferences);
+      }
       await bootstrapStores();
+      await rescheduleReminders();
     }
     if (remoteStale) {
       await api.save(id, merged);

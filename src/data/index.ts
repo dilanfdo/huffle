@@ -11,3 +11,5 @@ export * as sessionLogRepository from './repositories/sessionLogRepository';
 export * as streakRepository from './repositories/streakRepository';
 export * as weeklyGoalRepository from './repositories/weeklyGoalRepository';
 export * as settingsRepository from './repositories/settingsRepository';
+export * as preferencesRepository from './repositories/preferencesRepository';
+export type { PreferencesRecord } from './repositories/preferencesRepository';

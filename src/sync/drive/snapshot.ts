@@ -6,6 +6,7 @@ import type {
   UserRecord,
   WeeklyGoalRecord,
 } from '../../data/types';
+import type { PreferencesRecord } from '../../data/repositories/preferencesRepository';
 import type { DomainRecord } from '../records';
 
 export const SNAPSHOT_VERSION = 1;
@@ -23,6 +24,8 @@ export type Snapshot = {
   version: typeof SNAPSHOT_VERSION;
   savedAt: string;
   records: SnapshotRecords;
+  /** Wardrobe choice, gift state, supporter flag. Absent in backups made before 1.0.2. */
+  preferences?: PreferencesRecord | null;
 };
 
 export type ProfileSummary = {
@@ -35,6 +38,8 @@ export type MergeResult = {
   merged: Snapshot;
   /** Records where the remote copy is new or newer than local. */
   incoming: DomainRecord[];
+  /** The merged preferences when they differ from what this device has. */
+  incomingPreferences: PreferencesRecord | null;
   /** True when the remote file lacks or is behind something local. */
   remoteStale: boolean;
 };
@@ -62,7 +67,51 @@ export function parseSnapshot(raw: unknown): Snapshot | null {
       );
     }
   }
-  return { version: SNAPSHOT_VERSION, savedAt: String(value.savedAt ?? ''), records };
+  return {
+    version: SNAPSHOT_VERSION,
+    savedAt: String(value.savedAt ?? ''),
+    records,
+    preferences: parsePreferences(value.preferences),
+  };
+}
+
+function parsePreferences(raw: unknown): PreferencesRecord | null {
+  if (!raw || typeof raw !== 'object') {
+    return null;
+  }
+  const value = raw as Partial<PreferencesRecord>;
+  const text = (v: unknown) => (typeof v === 'string' && v.length > 0 ? v : null);
+  return {
+    selectedCosmetic: text(value.selectedCosmetic),
+    giftOpenedDate: text(value.giftOpenedDate),
+    supporter: value.supporter === true,
+    updatedAt: typeof value.updatedAt === 'string' ? value.updatedAt : '',
+  };
+}
+
+const samePreferences = (a: PreferencesRecord | null, b: PreferencesRecord | null): boolean =>
+  JSON.stringify(a) === JSON.stringify(b);
+
+/**
+ * The newest edit decides the selected item. The gift date only moves forward (so
+ * restoring never lets a gift be opened twice in a day) and the supporter flag,
+ * once earned, is kept.
+ */
+export function mergePreferences(
+  local: PreferencesRecord | null,
+  remote: PreferencesRecord | null,
+): PreferencesRecord | null {
+  if (!local || !remote) {
+    return local ?? remote;
+  }
+  const newer = remote.updatedAt > local.updatedAt ? remote : local;
+  const gifts = [local.giftOpenedDate, remote.giftOpenedDate].filter((d): d is string => Boolean(d));
+  return {
+    selectedCosmetic: newer.selectedCosmetic,
+    giftOpenedDate: gifts.length > 0 ? gifts.sort()[gifts.length - 1] : null,
+    supporter: local.supporter || remote.supporter,
+    updatedAt: local.updatedAt > remote.updatedAt ? local.updatedAt : remote.updatedAt,
+  };
 }
 
 type Winner<T> = { record: T; from: 'local' | 'remote' };
@@ -138,7 +187,18 @@ export function mergeSnapshots(local: Snapshot, remote: Snapshot | null, savedAt
   run('Streak', (r) => r.id);
   run('WeeklyGoal', (r) => (r as WeeklyGoalRecord).weekStartDate);
 
-  return { merged: { version: SNAPSHOT_VERSION, savedAt, records }, incoming, remoteStale };
+  const remotePrefs = remote?.preferences ?? null;
+  const localPrefs = local.preferences ?? null;
+  const preferences = mergePreferences(localPrefs, remotePrefs);
+  const incomingPreferences = preferences && !samePreferences(preferences, localPrefs) ? preferences : null;
+  remoteStale = remoteStale || !samePreferences(preferences, remotePrefs);
+
+  return {
+    merged: { version: SNAPSHOT_VERSION, savedAt, records, preferences },
+    incoming,
+    incomingPreferences,
+    remoteStale,
+  };
 }
 
 export function summarize(snapshot: Snapshot): ProfileSummary {

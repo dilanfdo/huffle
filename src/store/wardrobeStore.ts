@@ -1,10 +1,8 @@
 import { create } from 'zustand';
-import { settingsRepository } from '../data';
+import { preferencesRepository, settingsRepository } from '../data';
 import { COSMETIC_IDS, type CosmeticId } from '../domain';
 
-const KEY_SELECTED = 'wardrobe.selected';
-const KEY_GIFT_OPENED = 'gift.openedDate';
-const KEY_SUPPORTER = 'supporter.active';
+const { KEY_SELECTED, KEY_GIFT_OPENED, KEY_SUPPORTER } = preferencesRepository;
 
 function asCosmetic(value: string | null): CosmeticId | null {
   return (COSMETIC_IDS as readonly string[]).includes(value ?? '') ? (value as CosmeticId) : null;
@@ -46,15 +44,18 @@ export const useWardrobeStore = create<WardrobeState>((set) => ({
   select: async (id) => {
     set({ selected: id });
     await settingsRepository.setSetting(KEY_SELECTED, id);
+    await preferencesRepository.touchPreferences();
   },
 
   openGift: async (date) => {
     set({ giftOpenedDate: date });
     await settingsRepository.setSetting(KEY_GIFT_OPENED, date);
+    await preferencesRepository.touchPreferences();
   },
 
   setSupporter: async (value) => {
     set({ supporter: value });
     await settingsRepository.setSetting(KEY_SUPPORTER, value ? '1' : null);
+    await preferencesRepository.touchPreferences();
   },
 }));
